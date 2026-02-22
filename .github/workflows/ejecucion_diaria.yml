@@ -1,19 +1,16 @@
 name: Monitor Diario Integrado BORA y Compras
 on:
   schedule:
-    # Corre a las 10:00 UTC (07:00 AM en Argentina)
     - cron: '0 10 * * *'
-  workflow_dispatch: # Permite ejecución manual
+  workflow_dispatch:
 permissions:
-  contents: write
+  contents: write # IMPORTANTE para que el robot pueda subir el Excel
 jobs:
   run-analysis:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar código (Checkout)
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
@@ -22,14 +19,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pandas requests beautifulsoup4 openpyxl lxml
-      - name: Ejecutar Ciclo Integrado (Paso 1-2-3)
+      - name: Ejecutar Ciclo Integrado
         run: python diario.py
-      - name: Listar archivos generados (Debug)
-        run: ls -R data/ || echo "No se encontró la carpeta data"
-      - name: Guardar Reporte y Sincronizar (Commit & Push)
+      - name: Guardar Reporte y Sincronizar
         run: |
           git config --global user.name 'Robot Monitor'
           git config --global user.email 'robot@noreply.github.com'
-          git add data/                                                    # ← CAMBIO: Agregar toda la carpeta data/
-          git commit -m "Reporte Automático Integrado: $(date +'%Y-%m-%d')" || exit 0
+          git add data/
+          git commit -m "Reporte Integrado BORA-COMPRAR-TGN: $(date +'%Y-%m-%d')" || exit 0
           git push origin HEAD
