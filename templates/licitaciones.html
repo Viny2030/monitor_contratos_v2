@@ -46,53 +46,71 @@
             display: flex; align-items: center; justify-content: space-between;
             height: 64px;
         }
-        .header-brand h1 {
-            font-size: 1.05rem; font-weight: 700;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .header-brand p { font-size: .7rem; color: var(--text-muted); margin-top: 1px; }
-        .badge {
-            background: var(--accent-cyan); color: #0d1117;
-            font-size: .62rem; font-weight: 700;
-            padding: 2px 7px; border-radius: 10px;
-            font-family: var(--mono);
-        }
+        .header-brand h1 { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .header-brand p  { font-size: .7rem; color: var(--text-muted); margin-top: 1px; }
+        .badge { background: var(--accent-cyan); color: #0d1117; font-size: .62rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; font-family: var(--mono); }
         nav { display: flex; gap: 2px; }
-        nav a {
-            padding: 6px 14px; border-radius: 6px;
-            font-size: .8rem; color: var(--text-secondary);
-            transition: background .15s, color .15s;
-        }
+        nav a { padding: 6px 14px; border-radius: 6px; font-size: .8rem; color: var(--text-secondary); transition: background .15s, color .15s; }
         nav a:hover { background: var(--border); color: var(--text-primary); text-decoration: none; }
         nav a.active { background: rgba(6,182,212,.12); color: var(--accent-cyan); }
-
-        .live-dot {
-            display: inline-block; width: 7px; height: 7px;
-            background: var(--accent-green); border-radius: 50%;
-            animation: blink 2s ease-in-out infinite;
-        }
+        .live-dot { display: inline-block; width: 7px; height: 7px; background: var(--accent-green); border-radius: 50%; animation: blink 2s ease-in-out infinite; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
         /* MAIN */
         main { max-width: 1400px; margin: 0 auto; padding: 24px 24px 48px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* INFO BANNER */
-        .info-reporte {
-            background: rgba(6,182,212,.06);
-            border: 1px solid rgba(6,182,212,.2);
-            border-radius: 8px; padding: 10px 18px;
-            font-size: .8rem; color: var(--text-secondary);
-            display: flex; align-items: center; gap: 10px;
+        /* BANNER */
+        .info-reporte { background: rgba(6,182,212,.06); border: 1px solid rgba(6,182,212,.2); border-radius: 8px; padding: 10px 18px; font-size: .8rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .info-left { display: flex; align-items: center; gap: 10px; }
+
+        /* BOTÓN EJECUTAR */
+        .btn-ejecutar {
+            background: linear-gradient(135deg, rgba(6,182,212,.2), rgba(59,130,246,.2));
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background .2s, transform .1s;
+            display: flex; align-items: center; gap: 8px;
+            white-space: nowrap;
         }
+        .btn-ejecutar:hover { background: linear-gradient(135deg, rgba(6,182,212,.3), rgba(59,130,246,.3)); }
+        .btn-ejecutar:active { transform: scale(.98); }
+        .btn-ejecutar:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+        /* SPINNER */
+        .spinner-inline {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(6,182,212,.3);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* RESULTADO EJECUCIÓN */
+        .resultado-box {
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: .82rem;
+            display: none;
+        }
+        .resultado-box.exito { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.25); color: var(--text-secondary); }
+        .resultado-box.error { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); color: var(--accent-red); }
+        .resultado-box strong { color: var(--text-primary); }
+        .resultado-stats { display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap; }
+        .resultado-stat { display: flex; flex-direction: column; }
+        .resultado-stat span:first-child { font-family: var(--mono); font-size: 1.3rem; font-weight: 700; color: var(--accent-cyan); line-height: 1; }
+        .resultado-stat span:last-child  { font-size: .7rem; color: var(--text-muted); margin-top: 2px; }
 
         /* PIPELINE */
         .pipeline-label { font-size: .7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em; font-family: var(--mono); margin-bottom: 10px; }
-        .pipeline {
-            display: grid;
-            grid-template-columns: 1fr 32px 1fr 32px 1fr 32px 1fr;
-            align-items: center;
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
-        }
+        .pipeline { display: grid; grid-template-columns: 1fr 32px 1fr 32px 1fr 32px 1fr; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .pipe-stage { padding: 18px 20px; cursor: pointer; transition: background .15s; position: relative; }
         .pipe-stage:hover { background: rgba(255,255,255,.025); }
         .pipe-stage.active { background: rgba(6,182,212,.05); }
@@ -140,14 +158,10 @@
         .pb-green  { background:rgba(16,185,129,.12); color:var(--accent-green);  border:1px solid rgba(16,185,129,.25); }
 
         /* FLUJO LIST */
-        .flujo-item {
-            padding:13px 18px; border-bottom:1px solid rgba(30,45,74,.5);
-            display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start;
-            transition:background .15s;
-        }
+        .flujo-item { padding:13px 18px; border-bottom:1px solid rgba(30,45,74,.5); display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start; transition:background .15s; }
         .flujo-item:last-child { border-bottom:none; }
         .flujo-item:hover { background:rgba(255,255,255,.018); }
-        .flujo-org { font-weight:600; font-size:.85rem; color:var(--text-primary); }
+        .flujo-org  { font-weight:600; font-size:.85rem; color:var(--text-primary); }
         .flujo-proc { font-size:.72rem; color:var(--text-muted); margin-top:2px; font-family:var(--mono); }
         .flujo-checks { display:flex; gap:5px; margin-top:7px; flex-wrap:wrap; }
         .flujo-right { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
@@ -155,10 +169,11 @@
 
         /* CHIPS */
         .chip { display:inline-flex; align-items:center; gap:3px; padding:3px 9px; border-radius:20px; font-size:.7rem; font-weight:600; white-space:nowrap; }
-        .chip-sin-cuit  { background:rgba(239,68,68,.1);  color:var(--accent-red);    border:1px solid rgba(239,68,68,.2); }
-        .chip-adjudicado{ background:rgba(16,185,129,.1); color:var(--accent-green);  border:1px solid rgba(16,185,129,.2); }
-        .chip-pagado    { background:rgba(6,182,212,.1);  color:var(--accent-cyan);   border:1px solid rgba(6,182,212,.2); }
-        .chip-comprar   { background:rgba(59,130,246,.1); color:var(--accent-blue);   border:1px solid rgba(59,130,246,.2); }
+        .chip-sin-cuit  { background:rgba(239,68,68,.1);  color:var(--accent-red);   border:1px solid rgba(239,68,68,.2); }
+        .chip-adjudicado{ background:rgba(16,185,129,.1); color:var(--accent-green); border:1px solid rgba(16,185,129,.2); }
+        .chip-pagado    { background:rgba(6,182,212,.1);  color:var(--accent-cyan);  border:1px solid rgba(6,182,212,.2); }
+        .chip-comprar   { background:rgba(59,130,246,.1); color:var(--accent-blue);  border:1px solid rgba(59,130,246,.2); }
+        .chip-flujo     { background:rgba(239,68,68,.15); color:#ff6b6b;             border:1px solid rgba(239,68,68,.3); }
         .chip-ok        { background:rgba(16,185,129,.1); color:var(--accent-green); }
         .chip-no        { background:rgba(100,116,139,.08);color:var(--text-muted); }
 
@@ -178,8 +193,8 @@
         td { padding:10px 15px; border-bottom:1px solid rgba(30,45,74,.5); font-size:.8rem; color:var(--text-secondary); vertical-align:top; }
         tr:last-child td { border-bottom:none; }
         tr:hover td { background:rgba(255,255,255,.018); }
-        .td-mono  { font-family:var(--mono); font-size:.72rem; color:var(--text-muted); }
-        .td-name  { color:var(--text-primary); font-weight:500; max-width:300px; }
+        .td-mono { font-family:var(--mono); font-size:.72rem; color:var(--text-muted); }
+        .td-name { color:var(--text-primary); font-weight:500; max-width:300px; }
         .td-link a { font-family:var(--mono); font-size:.7rem; color:var(--accent-cyan); }
 
         /* CHART */
@@ -190,8 +205,11 @@
         .btn-reset { background:none; border:1px solid var(--border); color:var(--text-muted); padding:3px 10px; border-radius:6px; cursor:pointer; font-size:.7rem; font-family:inherit; transition:border-color .15s; }
         .btn-reset:hover { border-color:var(--text-muted); color:var(--text-primary); }
 
-        /* EMPTY */
+        /* EMPTY / AVISO */
         .empty { padding:28px; text-align:center; color:var(--text-muted); font-size:.82rem; }
+        .aviso-sin-datos { background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.2); border-radius:10px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        .aviso-texto { font-size:.85rem; color:var(--text-secondary); }
+        .aviso-texto strong { color:var(--accent-yellow); }
 
         /* SCROLLBAR */
         ::-webkit-scrollbar { width:5px; height:5px; }
@@ -203,6 +221,7 @@
             .pipe-arrow { display:none; }
             .metricas { grid-template-columns:1fr 1fr; }
             .grid-2 { grid-template-columns:1fr; }
+            .info-reporte { flex-direction:column; align-items:flex-start; }
         }
     </style>
 </head>
@@ -215,27 +234,44 @@
             <p>Ph.D. Vicente Humberto Monteverde · Algoritmos contra la Corrupción</p>
         </div>
         <nav>
-            <a href="#">📊 Dashboard XAI</a>
-            <a href="#" class="active">🏛️ Licitaciones</a>
-            <a href="#">🚀 Análisis en Vivo</a>
-            <a href="#">📖 Documentación</a>
-            <a href="#">🔧 API</a>
+            <a href="/">📊 Dashboard XAI</a>
+            <a href="/licitaciones" class="active">🏛️ Licitaciones</a>
+            <a href="/analisis-vivo">🚀 Análisis en Vivo</a>
+            <a href="/documentacion">📖 Documentación</a>
+            <a href="/docs">🔧 API</a>
         </nav>
     </div>
 </header>
 
 <main>
 
-    <!-- BANNER -->
+    <!-- BANNER + BOTÓN EJECUTAR -->
     <div class="info-reporte">
-        <span class="live-dot"></span>
-        <span>Datos al: <strong id="fecha-reporte">—</strong> &nbsp;·&nbsp;
-        Fuentes: BORA Sección 3ra · Comprar.gob.ar · TGN &nbsp;·&nbsp;
-        Procesado: 23/02/2026</span>
+        <div class="info-left">
+            <span class="live-dot" id="live-dot"></span>
+            <span>Datos al: <strong id="fecha-reporte">—</strong> &nbsp;·&nbsp;
+            Fuentes: BORA Sección 3ra · Comprar.gob.ar · TGN</span>
+        </div>
+        <button class="btn-ejecutar" id="btn-ejecutar" onclick="ejecutarCiclo()">
+            <div class="spinner-inline" id="spinner"></div>
+            <span id="btn-texto">🚀 Actualizar datos en vivo</span>
+        </button>
+    </div>
+
+    <!-- RESULTADO EJECUCIÓN -->
+    <div class="resultado-box" id="resultado-box">
+        <div id="resultado-contenido"></div>
+    </div>
+
+    <!-- AVISO SIN DATOS (visible solo si no hay datos) -->
+    <div class="aviso-sin-datos" id="aviso-sin-datos" style="display:none">
+        <div class="aviso-texto">
+            <strong>📭 Sin datos cargados.</strong> Presioná <strong>Actualizar datos en vivo</strong> para ejecutar el ciclo completo BORA → Comprar → TGN.
+        </div>
     </div>
 
     <!-- PIPELINE -->
-    <div>
+    <div id="seccion-datos">
         <div class="pipeline-label">📡 Flujo de monitoreo · BORA → Comprar → TGN</div>
         <div class="pipeline">
             <div class="pipe-stage s1 active" onclick="filterStage('bora')">
@@ -283,8 +319,8 @@
             <span class="numero" id="m-sin-cuit">—</span>
         </div>
         <div class="card verde">
-            <h3>Adjudicados con CUIT</h3>
-            <span class="numero" id="m-adj-cuit">—</span>
+            <h3>Flujo Completo BORA→TGN</h3>
+            <span class="numero" id="m-flujo-completo">—</span>
         </div>
     </div>
 
@@ -297,7 +333,7 @@
                 <button class="btn-reset" onclick="resetFilter()">✕ Reset</button>
             </div>
         </div>
-        <div id="flujo-table"></div>
+        <div id="flujo-table"><div class="empty">Ejecutá el ciclo para ver datos.</div></div>
     </div>
 
     <!-- TABS DETALLE -->
@@ -307,34 +343,22 @@
             <button class="tab-btn" onclick="switchTab(this,'comprar-licit')">🛒 Comprar.gob.ar <span id="tab-cnt-comprar"></span></button>
             <button class="tab-btn" onclick="switchTab(this,'adj-tab')">🏆 Adjudicaciones <span id="tab-cnt-adj"></span></button>
         </div>
-
         <div class="tab-content active" id="bora-licit">
             <div class="tabla-scroll"><table>
-                <thead><tr>
-                    <th>Aviso ID</th><th>Organismo</th><th>Tipo Proceso</th>
-                    <th>Categoría</th><th>Adjudicación</th><th>Link</th>
-                </tr></thead>
-                <tbody id="tbl-bora"></tbody>
+                <thead><tr><th>Aviso ID</th><th>Organismo</th><th>Tipo Proceso</th><th>Categoría</th><th>Adjudicación</th><th>Link</th></tr></thead>
+                <tbody id="tbl-bora"><tr><td colspan="6" class="empty">Sin datos.</td></tr></tbody>
             </table></div>
         </div>
-
         <div class="tab-content" id="comprar-licit">
             <div class="tabla-scroll"><table>
-                <thead><tr>
-                    <th>Nro Proceso</th><th>Nombre</th><th>Tipo</th>
-                    <th>Apertura</th><th>Estado</th><th>Unidad Ejecutora</th><th>Link</th>
-                </tr></thead>
-                <tbody id="tbl-comprar"></tbody>
+                <thead><tr><th>Nro Proceso</th><th>Nombre</th><th>Tipo</th><th>Apertura</th><th>Estado</th><th>Unidad Ejecutora</th><th>Link</th></tr></thead>
+                <tbody id="tbl-comprar"><tr><td colspan="7" class="empty">Sin datos.</td></tr></tbody>
             </table></div>
         </div>
-
         <div class="tab-content" id="adj-tab">
             <div class="tabla-scroll"><table>
-                <thead><tr>
-                    <th>Aviso ID</th><th>Organismo</th><th>Tipo Proceso</th>
-                    <th>Proveedor</th><th>CUIT</th><th>Monto</th><th>Link</th>
-                </tr></thead>
-                <tbody id="tbl-adj"></tbody>
+                <thead><tr><th>Aviso ID</th><th>Organismo</th><th>Tipo Proceso</th><th>Proveedor</th><th>CUIT</th><th>Monto</th><th>Link</th></tr></thead>
+                <tbody id="tbl-adj"><tr><td colspan="7" class="empty">Sin datos.</td></tr></tbody>
             </table></div>
         </div>
     </div>
@@ -360,148 +384,196 @@
 </main>
 
 <script>
-/* ─── DATA ────────────────────────────────────────────────────── */
-const DATA = {
-  flujo: [
-    {fecha:"2026-02-23",organismo_contratante:"MINISTERIO PÚBLICO DE LA DEFENSA — DEFENSORÍA GENERAL DE LA NACIÓN",tipo_proceso_bora:"Licitación Pública 49/2025",link_bora:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407956/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado_bora:"",en_comprar:"❌ NO",cobro_en_tgn:"❌ NO",monto_cobrado_tgn:"",etapa:"⚠️ SIN CUIT EXTRAÍDO"},
-    {fecha:"2026-02-23",organismo_contratante:"MINISTERIO PÚBLICO DE LA DEFENSA — DEFENSORÍA GENERAL DE LA NACIÓN",tipo_proceso_bora:"Licitación Pública 59/2025",link_bora:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407957/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado_bora:"",en_comprar:"❌ NO",cobro_en_tgn:"❌ NO",monto_cobrado_tgn:"",etapa:"⚠️ SIN CUIT EXTRAÍDO"},
-    {fecha:"2026-02-23",organismo_contratante:"EMPRESA ARGENTINA DE NAVEGACIÓN AÉREA S.E.",tipo_proceso_bora:"Licitación Pública (Modo IV) 10/2025",link_bora:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407963/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado_bora:"",en_comprar:"❌ NO",cobro_en_tgn:"❌ NO",monto_cobrado_tgn:"",etapa:"⚠️ SIN CUIT EXTRAÍDO"},
-    {fecha:"2026-02-23",organismo_contratante:"AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO — DIR. REGIONAL ADUANERA CENTRAL",tipo_proceso_bora:"Licitación Pública 005/2026",link_bora:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407965/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado_bora:"$1.164.000,00",en_comprar:"❌ NO",cobro_en_tgn:"❌ NO",monto_cobrado_tgn:"",etapa:"⚠️ SIN CUIT EXTRAÍDO"},
-    {fecha:"2026-02-23",organismo_contratante:"ARMADA ARGENTINA",tipo_proceso_bora:"Licitación Pública 431/2025",link_bora:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407967/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado_bora:"",en_comprar:"❌ NO",cobro_en_tgn:"❌ NO",monto_cobrado_tgn:"",etapa:"⚠️ SIN CUIT EXTRAÍDO"},
-    {fecha:"2026-02-23",organismo_contratante:"ADMINISTRACIÓN NACIONAL DE LA SEGURIDAD SOCIAL",tipo_proceso_bora:"Licitación Pública PROCESO COMPR.AR 63-0029-LPU25",link_bora:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407961/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado_bora:"",en_comprar:"❌ NO",cobro_en_tgn:"❌ NO",monto_cobrado_tgn:"",etapa:"⚠️ SIN CUIT EXTRAÍDO"},
-    {fecha:"2026-02-23",organismo_contratante:"ADMINISTRACIÓN NACIONAL DE LA SEGURIDAD SOCIAL",tipo_proceso_bora:"Licitación Pública PROCESO COMPRAR 63-0063-LPU25",link_bora:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407962/20260223",proveedor_adjudicado:"",cuit_proveedor:"33-57391612-9",monto_adjudicado_bora:"",en_comprar:"❌ NO",cobro_en_tgn:"❌ NO",monto_cobrado_tgn:"",etapa:"✅ ADJUDICADO (sin pago aún)"}
-  ],
-  bora_licitaciones: [
-    {organismo:"MINISTERIO DE DEFENSA",tipo_proceso:"Licitación Pública 0001/2026",categoria:"SUMINISTROS - COMBUSTIBLES, LUBRICANTES Y ACEITES",aviso_id:2407926,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407926/20260223"},
-    {organismo:"MINISTERIO DE DEFENSA",tipo_proceso:"Licitación Pública 0003/2026",categoria:"SUMINISTROS - COMBUSTIBLES, LUBRICANTES Y ACEITES",aviso_id:2407927,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407927/20260223"},
-    {organismo:"EMPRESA ARGENTINA DE NAVEGACIÓN AÉREA S.E.",tipo_proceso:"Licitación Pública (Modo IV) 10/2025",categoria:"SUMINISTROS - COMPONENTES Y ACCESORIOS DE AERONAVES",aviso_id:2407928,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407928/20260223"},
-    {organismo:"MINISTERIO DE DEFENSA",tipo_proceso:"Licitación Pública 0051/2026",categoria:"SUMINISTROS - EFECTOS VARIOS",aviso_id:2407929,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407929/20260223"},
-    {organismo:"MINISTERIO DE DEFENSA",tipo_proceso:"Licitación Pública 0002/2026",categoria:"SUMINISTROS - EFECTOS VARIOS",aviso_id:2407930,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407930/20260223"},
-    {organismo:"PODER JUDICIAL DE LA NACIÓN",tipo_proceso:"Licitación Pública LPU-2026-SC-007",categoria:"SUMINISTROS - EQ. PROC. DATOS / SOFT.",aviso_id:2407931,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407931/20260223"},
-    {organismo:"PODER JUDICIAL DE LA NACIÓN",tipo_proceso:"Licitación Pública LPU-2026-SC-008",categoria:"SUMINISTROS - EQ. PROC. DATOS / SOFT.",aviso_id:2407932,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407932/20260223"},
-    {organismo:"ARMADA ARGENTINA",tipo_proceso:"Licitación Pública Nacional 64785/2026",categoria:"SUMINISTROS - EQ. PROC. DATOS / SOFT.",aviso_id:2407933,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407933/20260223"},
-    {organismo:"MINISTERIO DE SALUD",tipo_proceso:"Licitación Pública 54/2025",categoria:"SUMINISTROS - EQ. Y SUM. MEDICINA / ODONT.",aviso_id:2407934,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407934/20260223"},
-    {organismo:"MINISTERIO DE SALUD",tipo_proceso:"Licitación Pública 16/2026",categoria:"SUMINISTROS - EQ. Y SUM. MEDICINA / ODONT.",aviso_id:2407935,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407935/20260223"},
-    {organismo:"MINISTERIO DE SALUD",tipo_proceso:"Licitación Pública 18/2026",categoria:"SUMINISTROS - EQ. Y SUM. MEDICINA / ODONT.",aviso_id:2407936,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407936/20260223"},
-    {organismo:"MINISTERIO DE DEFENSA",tipo_proceso:"Licitación Pública 0004/2026",categoria:"SUMINISTROS - EFECTOS VARIOS",aviso_id:2407937,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407937/20260223"},
-    {organismo:"MINISTERIO DE DEFENSA",tipo_proceso:"Licitación Pública 0005/2026",categoria:"SUMINISTROS - EFECTOS VARIOS",aviso_id:2407938,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407938/20260223"},
-    {organismo:"MINISTERIO DE INFRAESTRUCTURA",tipo_proceso:"Licitación Pública 003/2026",categoria:"OBRAS - CIVILES",aviso_id:2407939,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407939/20260223"},
-    {organismo:"MINISTERIO DE INFRAESTRUCTURA",tipo_proceso:"Licitación Pública 005/2026",categoria:"OBRAS - CIVILES",aviso_id:2407940,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407940/20260223"},
-    {organismo:"MINISTERIO DE SEGURIDAD",tipo_proceso:"Licitación Pública 012/2026",categoria:"SERVICIOS - LIMPIEZA",aviso_id:2407941,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407941/20260223"},
-    {organismo:"MINISTERIO DEL INTERIOR",tipo_proceso:"Licitación Pública 001/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407942,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407942/20260223"},
-    {organismo:"MINISTERIO DEL INTERIOR",tipo_proceso:"Licitación Pública 002/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407943,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407943/20260223"},
-    {organismo:"MINISTERIO DEL INTERIOR",tipo_proceso:"Licitación Pública 003/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407944,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407944/20260223"},
-    {organismo:"MINISTERIO DE TRABAJO",tipo_proceso:"Licitación Pública 007/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407945,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407945/20260223"},
-    {organismo:"MINISTERIO DE ECONOMÍA",tipo_proceso:"Licitación Pública 004/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407946,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407946/20260223"},
-    {organismo:"MINISTERIO DE JUSTICIA",tipo_proceso:"Licitación Pública 009/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407947,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407947/20260223"},
-    {organismo:"SENADO DE LA NACIÓN",tipo_proceso:"Licitación Pública 002/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407948,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407948/20260223"},
-    {organismo:"CÁMARA DE DIPUTADOS",tipo_proceso:"Licitación Pública 001/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407949,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407949/20260223"},
-    {organismo:"MINISTERIO DE CULTURA",tipo_proceso:"Licitación Pública 003/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407950,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407950/20260223"},
-    {organismo:"MINISTERIO DE EDUCACIÓN",tipo_proceso:"Licitación Pública 006/2026",categoria:"SERVICIOS - SERVICIOS DIVERSOS",aviso_id:2407951,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407951/20260223"},
-    {organismo:"AFIP",tipo_proceso:"Licitación Pública 008/2026",categoria:"SUMINISTROS - EQ. PROC. DATOS / SOFT.",aviso_id:2407952,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407952/20260223"},
-    {organismo:"MINISTERIO DE BIENES Y SERVICIOS",tipo_proceso:"Concesión 001/2026",categoria:"VENTAS Y OFRECIMIENTOS DEL ESTADO - CONCESIONES",aviso_id:2407953,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407953/20260223"},
-    {organismo:"MINISTERIO DE DESARROLLO SOCIAL",tipo_proceso:"Locación Inmueble 005/2026",categoria:"LOCACIONES - INMUEBLES (LOC)",aviso_id:2407954,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407954/20260223"},
-    {organismo:"MINISTERIO DE TRANSPORTE",tipo_proceso:"Locación Varios 003/2026",categoria:"LOCACIONES - VARIOS",aviso_id:2407955,es_adjudicacion:false,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407955/20260223"}
-  ],
-  bora_adjudicaciones: [
-    {organismo_contratante:"MINISTERIO PÚBLICO DE LA DEFENSA — DEFENSORÍA GENERAL DE LA NACIÓN",tipo_proceso:"Licitación Pública 49/2025",aviso_id:2407956,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407956/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado:""},
-    {organismo_contratante:"MINISTERIO PÚBLICO DE LA DEFENSA — DEFENSORÍA GENERAL DE LA NACIÓN",tipo_proceso:"Licitación Pública 59/2025",aviso_id:2407957,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407957/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado:""},
-    {organismo_contratante:"EMPRESA ARGENTINA DE NAVEGACIÓN AÉREA S.E.",tipo_proceso:"Licitación Pública (Modo IV) 10/2025",aviso_id:2407963,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407963/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado:""},
-    {organismo_contratante:"AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO",tipo_proceso:"Licitación Pública 005/2026",aviso_id:2407965,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407965/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado:"$1.164.000,00"},
-    {organismo_contratante:"ARMADA ARGENTINA",tipo_proceso:"Licitación Pública 431/2025",aviso_id:2407967,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407967/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado:""},
-    {organismo_contratante:"ADMINISTRACIÓN NACIONAL DE LA SEGURIDAD SOCIAL",tipo_proceso:"Licitación Pública PROCESO COMPR.AR 63-0029-LPU25",aviso_id:2407961,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407961/20260223",proveedor_adjudicado:"",cuit_proveedor:"",monto_adjudicado:""},
-    {organismo_contratante:"ADMINISTRACIÓN NACIONAL DE LA SEGURIDAD SOCIAL",tipo_proceso:"Licitación Pública PROCESO COMPRAR 63-0063-LPU25",aviso_id:2407962,link:"https://www.boletinoficial.gob.ar/detalleAviso/tercera/2407962/20260223",proveedor_adjudicado:"",cuit_proveedor:"33-57391612-9",monto_adjudicado:""}
-  ],
-  comprar: [
-    {nro_proceso:"487-0101-LPU25",nombre_proceso:"Servicio para la recepción, elaboración y distribución de alimentos.",tipo_proceso:"Licitación Pública",fecha_apertura:"23/02/2026 10:00 Hrs.",estado:"Publicado",unidad_ejecutora:"487 - División Compras - Superintendencia de Bienestar PFA",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"38/15-0012-LPU26",nombre_proceso:"Servicio de locación, mantenimiento y gestión de impresiones digitales.",tipo_proceso:"Licitación Pública",fecha_apertura:"23/02/2026 10:00 Hrs.",estado:"Publicado",unidad_ejecutora:"38/15 JEFATURA DE OBTENCION DE LA ARMADA",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"40/47-0629-LPR25",nombre_proceso:"Servicio de Fotocopiadora para la ESCUELA DE AVIACION MILITAR.",tipo_proceso:"Licitación Privada",fecha_apertura:"23/02/2026 10:00 Hrs.",estado:"Publicado",unidad_ejecutora:"Depto. Contrataciones Córdoba - UOC 40/47",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"38/18-0063-LPR26",nombre_proceso:"PROVISIÓN DE CARTAS ELECTRÓNICAS — BUQUE ESCUELA FRAGATA A.R.A. LIBERTAD.",tipo_proceso:"Licitación Privada",fecha_apertura:"23/02/2026 10:00 Hrs.",estado:"Publicado",unidad_ejecutora:"38/18 - Cmd. de Transportes Navales",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"38/18-0057-LPR26",nombre_proceso:"MANTENIMIENTO DE CAMARAS Y COMPRESORES DE FRIGORIFICA — A.R.A. LIBERTAD.",tipo_proceso:"Licitación Privada",fecha_apertura:"23/02/2026 10:00 Hrs.",estado:"Publicado",unidad_ejecutora:"38/18 - Cmd. de Transportes Navales",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"37/20-0939-CDI25",nombre_proceso:"ALQUILER DE DISPENSERS DE AGUA FRIO/CALOR.",tipo_proceso:"Contratación Directa",fecha_apertura:"23/02/2026 10:00 Hrs.",estado:"Publicado",unidad_ejecutora:"37/020 - Escuadrón 4 Concordia",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"40/51-0023-LPR26",nombre_proceso:"Adquisición de Medicamentos Analgésicos, Antiinflamatorios, Psicotrópicos para HACBA.",tipo_proceso:"Licitación Privada",fecha_apertura:"23/02/2026 10:00 Hrs.",estado:"Publicado",unidad_ejecutora:"Depto. Contrataciones Córdoba - UOC 40/51",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"84/19-0091-LPR26",nombre_proceso:"MATERIALES DE FERRETERIA Y ELECTRICIDAD — CDO BR M VIII 2DO TRIM 2026.",tipo_proceso:"Licitación Privada",fecha_apertura:"23/02/2026 10:00 Hrs.",estado:"Publicado",unidad_ejecutora:"84/19 - Comando Brigada de Montaña VIII",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"40/23-0984-CDI25",nombre_proceso:"SERVICIO DE FUMIGACION.",tipo_proceso:"Contratación Directa",fecha_apertura:"23/02/2026 10:30 Hrs.",estado:"Publicado",unidad_ejecutora:"40/023 - DIVISIÓN CONTRATACIONES MORENO",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="},
-    {nro_proceso:"84/71-0006-LPR26",nombre_proceso:"SERVICIO DE TRANSPORTE DEL PERSONAL DEL INSTITUTO.",tipo_proceso:"Licitación Privada",fecha_apertura:"23/02/2026 12:00 Hrs.",estado:"Publicado",unidad_ejecutora:"84/71 - Liceo Militar General Roca",link:"https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="}
-  ]
-};
+/* ─── ESTADO GLOBAL ─────────────────────────────────────────────── */
+let DATA = { flujo: [], bora_licitaciones: [], bora_adjudicaciones: [], comprar: [] };
+let grafico1 = null;
+let grafico2 = null;
 
 /* ─── HELPERS ───────────────────────────────────────────────────── */
 function etapaChip(e) {
     if (!e) return '';
-    if (e.includes('SIN CUIT'))   return `<span class="chip chip-sin-cuit">⚠️ Sin CUIT</span>`;
-    if (e.includes('ADJUDICADO')) return `<span class="chip chip-adjudicado">✅ Adjudicado</span>`;
-    if (e.includes('PAGADO'))     return `<span class="chip chip-pagado">💰 Pagado</span>`;
+    if (e.includes('FLUJO COMPLETO'))  return `<span class="chip chip-flujo">🚨 Flujo Completo</span>`;
+    if (e.includes('COBRÓ'))           return `<span class="chip chip-pagado">💰 Cobró en TGN</span>`;
+    if (e.includes('EN COMPRAR'))      return `<span class="chip chip-comprar">📋 En Comprar</span>`;
+    if (e.includes('ADJUDICADO'))      return `<span class="chip chip-adjudicado">✅ Adjudicado</span>`;
+    if (e.includes('SIN CUIT'))        return `<span class="chip chip-sin-cuit">⚠️ Sin CUIT</span>`;
     return `<span class="chip chip-no">${e}</span>`;
 }
-function checkChip(val, label) {
-    const ok = val && !val.includes('NO');
-    return `<span class="chip ${ok?'chip-ok chip-comprar':'chip-no'}">${label}</span>`;
+function alertaChip(a) {
+    if (!a) return '';
+    if (a.includes('FLUJO COMPLETO'))  return `<span class="chip chip-flujo">🚨 Flujo Completo</span>`;
+    if (a.includes('cobró'))           return `<span class="chip chip-pagado">🔶 BORA+TGN</span>`;
+    if (a.includes('COMPRAR'))         return `<span class="chip chip-comprar">🔷 BORA+Comprar</span>`;
+    return `<span class="chip chip-no">📋 Solo BORA</span>`;
 }
-function link(url, lbl) {
-    return url ? `<a href="${url}" target="_blank">${lbl||'↗ Ver'}</a>` : '—';
+function checkChip(val, label) {
+    const ok = val && val.includes('SÍ');
+    return `<span class="chip ${ok ? 'chip-ok chip-comprar' : 'chip-no'}">${label}</span>`;
+}
+function lnk(url, lbl) {
+    return url ? `<a href="${url}" target="_blank">${lbl || '↗ Ver'}</a>` : '—';
 }
 
-/* ─── METRICAS ──────────────────────────────────────────────────── */
+/* ─── EJECUTAR CICLO ────────────────────────────────────────────── */
+async function ejecutarCiclo() {
+    const btn     = document.getElementById('btn-ejecutar');
+    const spinner = document.getElementById('spinner');
+    const txtBtn  = document.getElementById('btn-texto');
+    const resBox  = document.getElementById('resultado-box');
+    const resCont = document.getElementById('resultado-contenido');
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    txtBtn.textContent = 'Ejecutando...';
+    resBox.style.display = 'none';
+    resBox.className = 'resultado-box';
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 180000); // 3 min
+
+        const resp = await fetch('/api/licitaciones/ejecutar', {
+            method: 'POST',
+            signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        const data = await resp.json();
+
+        if (resp.ok) {
+            resCont.innerHTML = `
+                <strong>✅ Ciclo completado exitosamente</strong>
+                <div class="resultado-stats">
+                    <div class="resultado-stat">
+                        <span>${data.licitaciones_bora ?? 0}</span>
+                        <span>Licitaciones BORA</span>
+                    </div>
+                    <div class="resultado-stat">
+                        <span>${data.adjudicaciones ?? 0}</span>
+                        <span>Adjudicaciones</span>
+                    </div>
+                    <div class="resultado-stat">
+                        <span>${data.adjudicaciones_con_cuit ?? 0}</span>
+                        <span>Con CUIT</span>
+                    </div>
+                    <div class="resultado-stat">
+                        <span>${data.comprar ?? 0}</span>
+                        <span>Comprar.gob.ar</span>
+                    </div>
+                    <div class="resultado-stat">
+                        <span>${data.tgn ?? 0}</span>
+                        <span>Beneficiarios TGN</span>
+                    </div>
+                    <div class="resultado-stat">
+                        <span style="color:var(--accent-red)">${data.flujo_completo ?? 0}</span>
+                        <span>Flujo Completo</span>
+                    </div>
+                </div>
+                <div style="margin-top:10px;font-size:.75rem;color:var(--text-muted)">
+                    📁 ${data.archivo_reporte} &nbsp;·&nbsp; ${data.archivo_flujo}
+                    &nbsp;·&nbsp; <a href="/">Ver en Dashboard XAI →</a>
+                </div>`;
+            resBox.classList.add('exito');
+
+            // Recargar la página para mostrar datos frescos del disco
+            setTimeout(() => location.reload(), 1500);
+
+        } else {
+            const detalle = data.detail || 'Error desconocido';
+            resCont.innerHTML = `
+                <strong>❌ Error en el ciclo</strong><br>
+                <span style="margin-top:6px;display:block">${detalle}</span>
+                ${detalle.includes('boletinoficial') || detalle.includes('comprar') ? `
+                <span style="margin-top:8px;display:block;font-size:.75rem">
+                💡 El portal puede no estar accesible desde este entorno. Intentá nuevamente en unos minutos.
+                </span>` : ''}`;
+            resBox.classList.add('error');
+        }
+
+    } catch (e) {
+        let msg = e.name === 'AbortError'
+            ? 'Tiempo de espera agotado (3 minutos). El ciclo de scraping tardó demasiado.'
+            : e.message;
+        resCont.innerHTML = `<strong>❌ Error de conexión</strong><br><span style="margin-top:6px;display:block">${msg}</span>`;
+        resBox.classList.add('error');
+    }
+
+    resBox.style.display = 'block';
+    spinner.style.display = 'none';
+    txtBtn.textContent = '🚀 Actualizar datos en vivo';
+    btn.disabled = false;
+}
+
+/* ─── RENDER MÉTRICAS ───────────────────────────────────────────── */
 function renderMetricas() {
     const f = DATA.flujo;
-    const sinCuit = f.filter(r=>r.etapa&&r.etapa.includes('SIN CUIT')).length;
-    const conCuit = f.filter(r=>r.cuit_proveedor).length;
-    const adjCuit = f.filter(r=>r.etapa&&r.etapa.includes('ADJUDICADO')).length;
-    const pagados = f.filter(r=>r.cobro_en_tgn&&!r.cobro_en_tgn.includes('NO')).length;
+    const sinCuit      = f.filter(r => r.etapa?.includes('SIN CUIT')).length;
+    const conCuit      = f.filter(r => r.cuit_proveedor).length;
+    const adjCuit      = f.filter(r => r.etapa?.includes('ADJUDICADO')).length;
+    const pagados      = f.filter(r => r.cobro_en_tgn?.includes('SÍ')).length;
+    const flujoTotal   = f.filter(r => r.alerta?.includes('FLUJO COMPLETO')).length;
 
-    document.getElementById('cnt-bora').textContent    = DATA.bora_licitaciones.length;
-    document.getElementById('cnt-comprar').textContent = DATA.comprar.length;
-    document.getElementById('cnt-adj').textContent     = DATA.bora_adjudicaciones.filter(r=>r.cuit_proveedor).length;
-    document.getElementById('cnt-tgn').textContent     = pagados;
-    document.getElementById('m-bora-total').textContent= DATA.bora_licitaciones.length + DATA.bora_adjudicaciones.length;
-    document.getElementById('m-cuit').textContent      = conCuit;
-    document.getElementById('m-sin-cuit').textContent  = sinCuit;
-    document.getElementById('m-adj-cuit').textContent  = adjCuit;
-    document.getElementById('fecha-reporte').textContent = '23/02/2026';
+    document.getElementById('cnt-bora').textContent    = DATA.bora_licitaciones.length || '—';
+    document.getElementById('cnt-comprar').textContent = DATA.comprar.length || '—';
+    document.getElementById('cnt-adj').textContent     = DATA.bora_adjudicaciones.filter(r => r.cuit_proveedor).length || '—';
+    document.getElementById('cnt-tgn').textContent     = pagados || '—';
+
+    document.getElementById('m-bora-total').textContent    = DATA.bora_licitaciones.length + DATA.bora_adjudicaciones.length || '—';
+    document.getElementById('m-cuit').textContent          = conCuit || '—';
+    document.getElementById('m-sin-cuit').textContent      = sinCuit || '—';
+    document.getElementById('m-flujo-completo').textContent = flujoTotal || '—';
+
+    const hoy = new Date().toLocaleDateString('es-AR');
+    document.getElementById('fecha-reporte').textContent = hoy;
 }
 
-/* ─── FLUJO ─────────────────────────────────────────────────────── */
+/* ─── RENDER FLUJO ──────────────────────────────────────────────── */
 function renderFlujo(data) {
     const el = document.getElementById('flujo-table');
-    if (!data.length) { el.innerHTML = '<div class="empty">Sin datos para este filtro.</div>'; return; }
+    if (!data.length) {
+        el.innerHTML = '<div class="empty">Sin registros para este filtro.</div>';
+        return;
+    }
     el.innerHTML = data.map(r => `
         <div class="flujo-item">
             <div>
-                <div class="flujo-org">${r.organismo_contratante}</div>
-                <div class="flujo-proc">${r.tipo_proceso_bora}</div>
+                <div class="flujo-org">${r.organismo_contratante || '—'}</div>
+                <div class="flujo-proc">${r.tipo_proceso_bora || ''}</div>
                 <div class="flujo-checks">
-                    ${etapaChip(r.etapa)}
-                    ${checkChip(r.en_comprar,'🛒 Comprar')}
-                    ${checkChip(r.cobro_en_tgn,'💵 TGN')}
-                    ${r.cuit_proveedor?`<span class="chip chip-comprar">CUIT: ${r.cuit_proveedor}</span>`:''}
+                    ${alertaChip(r.alerta)}
+                    ${checkChip(r.en_comprar, '🛒 Comprar')}
+                    ${checkChip(r.cobro_en_tgn, '💵 TGN')}
+                    ${r.cuit_proveedor ? `<span class="chip chip-comprar">CUIT: ${r.cuit_proveedor}</span>` : ''}
                 </div>
             </div>
             <div class="flujo-right">
-                ${r.monto_adjudicado_bora?`<div class="flujo-monto">${r.monto_adjudicado_bora}</div>`:''}
-                ${r.monto_cobrado_tgn?`<div class="flujo-monto" style="color:var(--accent-green)">${r.monto_cobrado_tgn}</div>`:''}
-                <div style="font-size:.7rem">${link(r.link_bora,'↗ BORA')}</div>
+                ${r.monto_adjudicado_bora ? `<div class="flujo-monto">${r.monto_adjudicado_bora}</div>` : ''}
+                ${r.monto_cobrado_tgn ? `<div class="flujo-monto" style="color:var(--accent-green)">${r.monto_cobrado_tgn}</div>` : ''}
+                <div style="font-size:.7rem">${lnk(r.link_bora, '↗ BORA')}</div>
             </div>
         </div>`).join('');
 }
 
-/* ─── TABLA BORA ────────────────────────────────────────────────── */
+/* ─── TABLAS ────────────────────────────────────────────────────── */
 function renderBora() {
-    document.getElementById('tbl-bora').innerHTML = DATA.bora_licitaciones.map(r=>`
+    const tbody = document.getElementById('tbl-bora');
+    if (!DATA.bora_licitaciones.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Sin datos.</td></tr>'; return; }
+    tbody.innerHTML = DATA.bora_licitaciones.map(r => `
         <tr>
             <td class="td-mono">${r.aviso_id}</td>
             <td class="td-name">${r.organismo}</td>
             <td style="font-size:.75rem">${r.tipo_proceso}</td>
             <td style="font-size:.72rem;color:var(--text-muted)">${r.categoria}</td>
-            <td>${r.es_adjudicacion?'<span class="chip chip-adjudicado">Sí</span>':'<span class="chip chip-no">No</span>'}</td>
-            <td class="td-link">${link(r.link,'↗')}</td>
+            <td>${r.es_adjudicacion ? '<span class="chip chip-adjudicado">Sí</span>' : '<span class="chip chip-no">No</span>'}</td>
+            <td class="td-link">${lnk(r.link, '↗')}</td>
         </tr>`).join('');
-    document.getElementById('tab-cnt-bora').textContent=`(${DATA.bora_licitaciones.length})`;
+    document.getElementById('tab-cnt-bora').textContent = `(${DATA.bora_licitaciones.length})`;
 }
 
-/* ─── TABLA COMPRAR ─────────────────────────────────────────────── */
 function renderComprar() {
-    document.getElementById('tbl-comprar').innerHTML = DATA.comprar.map(r=>`
+    const tbody = document.getElementById('tbl-comprar');
+    if (!DATA.comprar.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Sin datos.</td></tr>'; return; }
+    tbody.innerHTML = DATA.comprar.map(r => `
         <tr>
             <td class="td-mono">${r.nro_proceso}</td>
             <td class="td-name">${r.nombre_proceso}</td>
@@ -509,99 +581,117 @@ function renderComprar() {
             <td class="td-mono">${r.fecha_apertura}</td>
             <td><span class="chip chip-comprar">${r.estado}</span></td>
             <td style="font-size:.72rem;color:var(--text-muted);max-width:200px">${r.unidad_ejecutora}</td>
-            <td class="td-link">${link(r.link,'↗')}</td>
+            <td class="td-link">${lnk(r.link, '↗')}</td>
         </tr>`).join('');
-    document.getElementById('tab-cnt-comprar').textContent=`(${DATA.comprar.length})`;
+    document.getElementById('tab-cnt-comprar').textContent = `(${DATA.comprar.length})`;
 }
 
-/* ─── TABLA ADJUDICACIONES ──────────────────────────────────────── */
 function renderAdj() {
-    document.getElementById('tbl-adj').innerHTML = DATA.bora_adjudicaciones.map(r=>`
+    const tbody = document.getElementById('tbl-adj');
+    if (!DATA.bora_adjudicaciones.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Sin datos.</td></tr>'; return; }
+    tbody.innerHTML = DATA.bora_adjudicaciones.map(r => `
         <tr>
             <td class="td-mono">${r.aviso_id}</td>
             <td class="td-name">${r.organismo_contratante}</td>
             <td style="font-size:.75rem">${r.tipo_proceso}</td>
-            <td>${r.proveedor_adjudicado||'<span style="color:var(--text-muted)">—</span>'}</td>
-            <td>${r.cuit_proveedor?`<span class="chip chip-adjudicado">${r.cuit_proveedor}</span>`:'<span style="color:var(--accent-red);font-size:.72rem">Sin CUIT</span>'}</td>
-            <td class="td-mono">${r.monto_adjudicado||'—'}</td>
-            <td class="td-link">${link(r.link,'↗')}</td>
+            <td>${r.proveedor_adjudicado || '<span style="color:var(--text-muted)">—</span>'}</td>
+            <td>${r.cuit_proveedor ? `<span class="chip chip-adjudicado">${r.cuit_proveedor}</span>` : '<span style="color:var(--accent-red);font-size:.72rem">Sin CUIT</span>'}</td>
+            <td class="td-mono">${r.monto_adjudicado || '—'}</td>
+            <td class="td-link">${lnk(r.link, '↗')}</td>
         </tr>`).join('');
-    document.getElementById('tab-cnt-adj').textContent=`(${DATA.bora_adjudicaciones.length})`;
+    document.getElementById('tab-cnt-adj').textContent = `(${DATA.bora_adjudicaciones.length})`;
 }
 
 /* ─── FILTROS PIPELINE ──────────────────────────────────────────── */
 function filterStage(stage) {
-    document.querySelectorAll('.pipe-stage').forEach(el=>el.classList.remove('active'));
-    let filtered=DATA.flujo, label='Todos';
-    const map = {bora:['s1','Todos'],comprar:['s2','En Comprar'],adj:['s3','Adjudicados'],tgn:['s4','Cobros TGN']};
-    const [cls,lbl] = map[stage]||['s1','Todos'];
-    document.querySelector('.pipe-stage.'+cls).classList.add('active');
-    label=lbl;
-    if (stage==='comprar') filtered=DATA.flujo.filter(r=>r.en_comprar&&!r.en_comprar.includes('NO'));
-    if (stage==='adj')     filtered=DATA.flujo.filter(r=>r.cuit_proveedor);
-    if (stage==='tgn')     filtered=DATA.flujo.filter(r=>r.cobro_en_tgn&&!r.cobro_en_tgn.includes('NO'));
-    document.getElementById('filter-label').textContent=label;
+    document.querySelectorAll('.pipe-stage').forEach(el => el.classList.remove('active'));
+    const map = { bora: 's1', comprar: 's2', adj: 's3', tgn: 's4' };
+    const labels = { bora: 'Todos', comprar: 'En Comprar', adj: 'Adjudicados', tgn: 'Cobros TGN' };
+    document.querySelector('.pipe-stage.' + map[stage]).classList.add('active');
+    document.getElementById('filter-label').textContent = labels[stage];
+    let filtered = DATA.flujo;
+    if (stage === 'comprar') filtered = DATA.flujo.filter(r => r.en_comprar?.includes('SÍ'));
+    if (stage === 'adj')     filtered = DATA.flujo.filter(r => r.cuit_proveedor);
+    if (stage === 'tgn')     filtered = DATA.flujo.filter(r => r.cobro_en_tgn?.includes('SÍ'));
     renderFlujo(filtered);
 }
 function resetFilter() {
-    document.querySelectorAll('.pipe-stage').forEach(el=>el.classList.remove('active'));
+    document.querySelectorAll('.pipe-stage').forEach(el => el.classList.remove('active'));
     document.querySelector('.pipe-stage.s1').classList.add('active');
-    document.getElementById('filter-label').textContent='Todos';
+    document.getElementById('filter-label').textContent = 'Todos';
     renderFlujo(DATA.flujo);
 }
 
 /* ─── TABS ──────────────────────────────────────────────────────── */
 function switchTab(btn, id) {
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(id).classList.add('active');
 }
 
 /* ─── GRÁFICOS ──────────────────────────────────────────────────── */
 function renderCharts() {
-    Chart.defaults.color='#64748b';
-    Chart.defaults.borderColor='#1e2d4a';
+    Chart.defaults.color = '#64748b';
+    Chart.defaults.borderColor = '#1e2d4a';
 
-    // Categorías
-    const cats={};
-    DATA.bora_licitaciones.forEach(r=>{
-        const c=r.categoria.replace(/SUMINISTROS - |SERVICIOS - |LOCACIONES - |VENTAS Y OFRECIMIENTOS DEL ESTADO - /g,'');
-        cats[c]=(cats[c]||0)+1;
+    const cats = {};
+    DATA.bora_licitaciones.forEach(r => {
+        const c = r.categoria
+            .replace(/SUMINISTROS - |SERVICIOS - |LOCACIONES - |VENTAS Y OFRECIMIENTOS DEL ESTADO - /g, '');
+        cats[c] = (cats[c] || 0) + 1;
     });
-    const ck=Object.keys(cats).sort((a,b)=>cats[b]-cats[a]);
-    const colors=['#06b6d4','#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#14b8a6','#f97316','#84cc16','#a78bfa'];
-    new Chart(document.getElementById('grafico-categorias'),{
-        type:'bar',
-        data:{ labels:ck, datasets:[{data:ck.map(k=>cats[k]),backgroundColor:colors,borderRadius:5,borderSkipped:false}] },
-        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-            scales:{ x:{grid:{color:'#1e2d4a'},ticks:{font:{size:9},maxRotation:30}}, y:{grid:{color:'#1e2d4a'},ticks:{stepSize:1}} } }
+    const ck = Object.keys(cats).sort((a, b) => cats[b] - cats[a]);
+    const colors = ['#06b6d4','#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#14b8a6','#f97316','#84cc16','#a78bfa'];
+
+    if (grafico1) grafico1.destroy();
+    grafico1 = new Chart(document.getElementById('grafico-categorias'), {
+        type: 'bar',
+        data: { labels: ck, datasets: [{ data: ck.map(k => cats[k]), backgroundColor: colors, borderRadius: 5, borderSkipped: false }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+            scales: { x: { grid: { color: '#1e2d4a' }, ticks: { font: { size: 9 }, maxRotation: 30 } }, y: { grid: { color: '#1e2d4a' }, ticks: { stepSize: 1 } } } }
     });
 
-    // Etapas
-    const et={'Sin CUIT':0,'Adjudicado':0,'Pagado':0};
-    DATA.flujo.forEach(r=>{
-        if(r.etapa?.includes('SIN CUIT')) et['Sin CUIT']++;
-        else if(r.etapa?.includes('ADJUDICADO')) et['Adjudicado']++;
-        else if(r.cobro_en_tgn&&!r.cobro_en_tgn.includes('NO')) et['Pagado']++;
+    const et = { 'Sin CUIT': 0, 'Adjudicado': 0, 'Cobró TGN': 0, 'Flujo Completo': 0 };
+    DATA.flujo.forEach(r => {
+        if (r.alerta?.includes('FLUJO COMPLETO'))   et['Flujo Completo']++;
+        else if (r.cobro_en_tgn?.includes('SÍ'))    et['Cobró TGN']++;
+        else if (r.etapa?.includes('ADJUDICADO'))   et['Adjudicado']++;
+        else                                         et['Sin CUIT']++;
     });
-    new Chart(document.getElementById('grafico-etapas'),{
-        type:'doughnut',
-        data:{ labels:Object.keys(et), datasets:[{data:Object.values(et),backgroundColor:['#ef4444','#10b981','#06b6d4'],borderWidth:2,borderColor:'#0f172a'}] },
-        options:{ responsive:true, maintainAspectRatio:false,
-            plugins:{ legend:{position:'bottom',labels:{color:'#94a3b8',padding:14,font:{size:12}}} }, cutout:'60%' }
+    if (grafico2) grafico2.destroy();
+    grafico2 = new Chart(document.getElementById('grafico-etapas'), {
+        type: 'doughnut',
+        data: { labels: Object.keys(et), datasets: [{ data: Object.values(et), backgroundColor: ['#ef4444','#10b981','#06b6d4','#ff6b6b'], borderWidth: 2, borderColor: '#0f172a' }] },
+        options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 14, font: { size: 12 } } } }, cutout: '60%' }
     });
 }
 
-/* ─── INIT ──────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded',()=>{
+/* ─── CARGAR DATOS DESDE DISCO (vía API si hay xlsx guardados) ─── */
+async function cargarDatosIniciales() {
+    // Intentar cargar el último reporte del disco via el endpoint de status
+    try {
+        const resp = await fetch('/api/status');
+        const data = await resp.json();
+        if (!data.reportes_en_disco && !data.cache_activo) {
+            document.getElementById('aviso-sin-datos').style.display = 'flex';
+        }
+    } catch (e) {
+        // si falla la API mostramos el aviso
+        document.getElementById('aviso-sin-datos').style.display = 'flex';
+    }
+    // Renderizar con datos vacíos (se llenarán tras ejecutar)
     renderMetricas();
     renderFlujo(DATA.flujo);
     renderBora();
     renderComprar();
     renderAdj();
     renderCharts();
-});
+}
+
+/* ─── INIT ──────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', cargarDatosIniciales);
 </script>
 </body>
 </html>
