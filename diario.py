@@ -9,10 +9,17 @@ import time
 # FUNCIÓN DE REQUEST CON REINTENTOS
 # ─────────────────────────────────────────
 def get_con_reintentos(url, intentos=3, timeout=60, espera=15, verify_ssl=False):
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "es-AR,es;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+    }
     for i in range(intentos):
         try:
             print(f"🔄 Intento {i+1} de {intentos}: {url}")
-            response = requests.get(url, timeout=timeout, verify=verify_ssl)
+            response = requests.get(url, headers=headers, timeout=timeout, verify=verify_ssl)
             response.raise_for_status()
             return response
         except Exception as e:
@@ -27,15 +34,7 @@ def get_con_reintentos(url, intentos=3, timeout=60, espera=15, verify_ssl=False)
 def extraer_licitaciones_scraper():
     url = "https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="
     try:
-        # AHORA
-    headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "es-AR,es;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-}
-response = requests.get(url, headers=headers, timeout=timeout, verify=verify_ssl)
+        response = get_con_reintentos(url, intentos=3, timeout=60, espera=15, verify_ssl=False)
         
         print(f"✅ Status code: {response.status_code}")
         print(f"✅ Largo del HTML: {len(response.text)}")
@@ -56,8 +55,8 @@ response = requests.get(url, headers=headers, timeout=timeout, verify=verify_ssl
         print(f"✅ Filas encontradas: {len(rows)}")
 
         # Ver estructura de columnas
-        headers = rows[0].find_all("th")
-        for i, h in enumerate(headers):
+        encabezados = rows[0].find_all("th")
+        for i, h in enumerate(encabezados):
             print(f"   Columna {i}: {h.text.strip()}")
 
         if len(rows) > 1:
