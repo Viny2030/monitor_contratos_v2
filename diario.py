@@ -159,9 +159,27 @@ def extraer_bora_licitaciones():
                 fecha_raw = partes[-1] if len(partes) >= 1 else ""
                 fecha_pub = f"{fecha_raw[:4]}-{fecha_raw[4:6]}-{fecha_raw[6:]}" if len(fecha_raw) == 8 else fecha_raw
 
+                # Limpiar y unir líneas del texto del link
                 lineas = [l.strip() for l in elem.text.strip().split("\n") if l.strip()]
-                organismo    = lineas[0] if len(lineas) > 0 else ""
-                tipo_proceso = lineas[1] if len(lineas) > 1 else ""
+
+                # El organismo puede venir en varias líneas (ej: "MINISTERIO -\nDEFENSORÍA")
+                # El tipo_proceso es la última línea si contiene palabras clave
+                palabras_tipo = ["Licitación", "Contratación", "Concurso", "Adjudicación",
+                                 "Subasta", "Compulsa", "Obra Pública"]
+                
+                tipo_proceso = ""
+                lineas_organismo = []
+                for linea in lineas:
+                    if any(p.lower() in linea.lower() for p in palabras_tipo):
+                        tipo_proceso = linea
+                    else:
+                        lineas_organismo.append(linea)
+
+                # Unir todas las líneas del organismo con espacio
+                organismo = " ".join(lineas_organismo).strip()
+                # Limpiar guión al final
+                organismo = re.sub(r'\s*-\s*$', '', organismo).strip()
+
                 es_adj = "ADJUDICACION" in categoria_actual.upper()
 
                 datos.append({
