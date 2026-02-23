@@ -274,6 +274,10 @@ def ejecutar_licitaciones():
             if not df_cruce.empty else 0
         )
 
+        # Conteos de riesgo licitatorio (columnas agregadas por analizar_adjudicaciones)
+        riesgo_alto  = int((df_cruce["nivel_riesgo_licit"] == "Alto").sum())  if "nivel_riesgo_licit" in df_cruce.columns else 0
+        riesgo_medio = int((df_cruce["nivel_riesgo_licit"] == "Medio").sum()) if "nivel_riesgo_licit" in df_cruce.columns else 0
+
         return {
             "status": "ok",
             "licitaciones_bora":       len(df_licit),
@@ -283,6 +287,8 @@ def ejecutar_licitaciones():
             "tgn":                     len(df_tgn),
             "flujo_cruzado":           len(df_cruce),
             "flujo_completo":          flujo_completo,
+            "riesgo_alto":             riesgo_alto,
+            "riesgo_medio":            riesgo_medio,
             "archivo_reporte":         os.path.basename(archivo1),
             "archivo_flujo":           os.path.basename(archivo2),
         }
