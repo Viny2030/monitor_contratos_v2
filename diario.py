@@ -33,7 +33,7 @@ def extraer_licitaciones_scraper():
         print(f"✅ Largo del HTML: {len(response.text)}")
         
         soup = BeautifulSoup(response.text, "html.parser")
-        tabla = soup.find("table", {"id": "ctl00_CPH1_GridLicitaciones"})
+        tabla = soup.find("table", {"id": "ctl00_CPH1_GridListaPliegosAperturaProxima"})
         
         print(f"✅ Tabla encontrada: {tabla is not None}")
         
@@ -46,6 +46,16 @@ def extraer_licitaciones_scraper():
         
         rows = tabla.find_all("tr")
         print(f"✅ Filas encontradas: {len(rows)}")
+
+        # Ver estructura de columnas
+        headers = rows[0].find_all("th")
+        for i, h in enumerate(headers):
+            print(f"   Columna {i}: {h.text.strip()}")
+
+        if len(rows) > 1:
+            cols_test = rows[1].find_all("td")
+            for i, c in enumerate(cols_test):
+                print(f"   Col {i}: {c.text.strip()[:50]}")
         
         datos = []
         for row in rows[1:21]:
