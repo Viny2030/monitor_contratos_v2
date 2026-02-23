@@ -27,7 +27,15 @@ def get_con_reintentos(url, intentos=3, timeout=60, espera=15, verify_ssl=False)
 def extraer_licitaciones_scraper():
     url = "https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10="
     try:
-        response = get_con_reintentos(url, intentos=3, timeout=60, espera=15, verify_ssl=False)
+        # AHORA
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "es-AR,es;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+}
+response = requests.get(url, headers=headers, timeout=timeout, verify=verify_ssl)
         
         print(f"✅ Status code: {response.status_code}")
         print(f"✅ Largo del HTML: {len(response.text)}")
