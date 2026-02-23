@@ -32,15 +32,12 @@ jobs:
       - name: Ejecutar Ciclo Integrado
         run: python diario.py
 
-      - name: Guardar Reporte y Sincronizar en ambas ramas
+      - name: Guardar Reporte y Sincronizar
         run: |
           git config --global user.name 'Robot Monitor'
           git config --global user.email 'robot@noreply.github.com'
-
-          # Subir a desarrollo
           git add data/
           git commit -m "Reporte Integrado BORA-COMPRAR-TGN: $(date +'%Y-%m-%d')" || exit 0
           git push origin HEAD:desarrollo
-
-          # Subir a main
-          git push origin HEAD:main
+          git fetch origin main
+          git push origin HEAD:main --force
