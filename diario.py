@@ -6,6 +6,8 @@ import os
 import time
 import re
 
+from analisis import analizar_adjudicaciones
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -466,10 +468,18 @@ def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_
     carpeta = carpeta_mes()
     hoy     = datetime.now().strftime("%Y-%m-%d")
 
+    # ── Aplicar Matriz de Riesgo Licitatorio al flujo cruzado ──
+    df_cruce_con_riesgo = pd.DataFrame()
+    if not df_cruce.empty:
+        print("\n🔬 Aplicando Matriz de Riesgo Licitatorio...")
+        df_cruce_con_riesgo = analizar_adjudicaciones(df_cruce, df_tgn)
+
     # ── Excel 1: Reporte operativo completo ──
     archivo1 = os.path.join(carpeta, f"reporte_{hoy}.xlsx")
     with pd.ExcelWriter(archivo1, engine="openpyxl") as writer:
-        if not df_cruce.empty:
+        if not df_cruce_con_riesgo.empty:
+            df_cruce_con_riesgo.to_excel(writer, sheet_name="🚨 Flujo Completo", index=False)
+        elif not df_cruce.empty:
             df_cruce.to_excel(writer, sheet_name="🚨 Flujo Completo", index=False)
         if not df_adjudicaciones.empty:
             df_adjudicaciones.to_excel(writer, sheet_name="🏆 Adjudicaciones", index=False)
@@ -479,10 +489,25 @@ def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_
             df_comprar.to_excel(writer, sheet_name="🛒 Comprar", index=False)
         if not df_tgn.empty:
             df_tgn.to_excel(writer, sheet_name="💰 TGN", index=False)
+        # Pestaña exclusiva de alertas de riesgo licitatorio
+        if not df_cruce_con_riesgo.empty:
+            cols_riesgo = [
+                "fecha", "organismo_contratante", "tipo_proceso_bora",
+                "cuit_proveedor", "monto_adjudicado_bora",
+                "indicadores_riesgo", "score_riesgo_licit",
+                "indice_riesgo_licit", "nivel_riesgo_licit",
+                "etapa", "alerta", "link_bora",
+            ]
+            cols_presentes = [c for c in cols_riesgo if c in df_cruce_con_riesgo.columns]
+            df_alertas = df_cruce_con_riesgo[cols_presentes].sort_values(
+                "indice_riesgo_licit", ascending=False
+            )
+            df_alertas.to_excel(writer, sheet_name="⚠️ Riesgo Licitatorio", index=False)
     print(f"  ✅ Reporte completo: {archivo1}")
 
     # ── Excel 2: Solo el flujo Licitación→Adjudicación→Pago ──
     archivo2 = os.path.join(carpeta, f"flujo_licitaciones_{hoy}.xlsx")
+    df_flujo = df_cruce_con_riesgo if not df_cruce_con_riesgo.empty else df_cruce
     with pd.ExcelWriter(archivo2, engine="openpyxl") as writer:
         # Pestaña 1: Solo adjudicaciones con CUIT (el dato clave)
         if not df_adjudicaciones.empty:
@@ -492,19 +517,28 @@ def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_
             if not df_con_cuit.empty:
                 df_con_cuit.to_excel(writer, sheet_name="✅ Adjudicados con CUIT", index=False)
 
-        # Pestaña 2: Flujo completo cruzado
-        if not df_cruce.empty:
-            df_cruce.to_excel(writer, sheet_name="🔗 Flujo Cruzado", index=False)
+        # Pestaña 2: Flujo completo cruzado con riesgo
+        if not df_flujo.empty:
+            df_flujo.to_excel(writer, sheet_name="🔗 Flujo Cruzado", index=False)
 
         # Pestaña 3: Los que ya cobraron (en TGN)
-        if not df_cruce.empty:
-            df_cobro = df_cruce[df_cruce["cobro_en_tgn"] == "✅ SÍ"].copy()
+        if not df_flujo.empty:
+            df_cobro = df_flujo[df_flujo["cobro_en_tgn"] == "✅ SÍ"].copy()
             if not df_cobro.empty:
                 df_cobro.to_excel(writer, sheet_name="💰 Cobraron en TGN", index=False)
 
         # Pestaña 4: Licitaciones abiertas en Comprar (pendientes de adjudicar)
         if not df_comprar.empty:
             df_comprar.to_excel(writer, sheet_name="⏳ Licitaciones Abiertas", index=False)
+
+        # Pestaña 5: Alertas de riesgo licitatorio — solo los de riesgo Alto y Medio
+        if not df_cruce_con_riesgo.empty:
+            df_alto_riesgo = df_cruce_con_riesgo[
+                df_cruce_con_riesgo["nivel_riesgo_licit"].isin(["Alto", "Medio"])
+            ].copy()
+            if not df_alto_riesgo.empty:
+                df_alto_riesgo = df_alto_riesgo.sort_values("indice_riesgo_licit", ascending=False)
+                df_alto_riesgo.to_excel(writer, sheet_name="⚠️ Alertas Riesgo", index=False)
 
     print(f"  ✅ Flujo licitaciones: {archivo2}")
     return archivo1, archivo2
@@ -542,9 +576,17 @@ if __name__ == "__main__":
     if not df_adjudicaciones.empty:
         con_cuit = df_adjudicaciones["cuit_proveedor"].astype(bool).sum()
 
+    # Resumen de riesgo licitatorio
+    alto_riesgo = medio_riesgo = 0
+    if not df_cruce.empty and "nivel_riesgo_licit" in df_cruce.columns:
+        alto_riesgo  = (df_cruce["nivel_riesgo_licit"] == "Alto").sum()
+        medio_riesgo = (df_cruce["nivel_riesgo_licit"] == "Medio").sum()
+
     print("\n📊 RESUMEN FINAL:")
     print(f"   Licitaciones BORA:  {len(df_licitaciones)}")
     print(f"   Adjudicaciones:     {len(df_adjudicaciones)} ({con_cuit} con CUIT)")
     print(f"   Procesos Comprar:   {len(df_comprar)}")
     print(f"   Beneficiarios TGN:  {len(df_tgn)}")
     print(f"   Flujo cruzado:      {len(df_cruce)}")
+    print(f"   ⚠️  Riesgo Alto:    {alto_riesgo}")
+    print(f"   🟡 Riesgo Medio:   {medio_riesgo}")
