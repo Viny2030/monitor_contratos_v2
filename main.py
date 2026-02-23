@@ -146,6 +146,11 @@ async def documentacion(request: Request):
     })
 
 
+@app.get("/licitaciones", response_class=HTMLResponse)
+async def licitaciones(request: Request):
+    return templates.TemplateResponse("licitaciones.html", {"request": request})
+
+
 @app.get("/api/status")
 def status():
     archivos = buscar_todos_los_xlsx(DATA_DIR)
