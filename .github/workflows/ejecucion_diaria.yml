@@ -2,7 +2,7 @@ name: Monitor Diario Integrado BORA y Compras
 
 on:
   schedule:
-    - cron: '0 10 * * *'
+    - cron: '0 11 * * *'   # 08:00 Argentina (UTC-3)
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
       - name: Instalar librerías
         run: |
           python -m pip install --upgrade pip
-          pip install pandas requests beautifulsoup4 openpyxl lxml
+          pip install pandas requests beautifulsoup4 openpyxl lxml pdfminer.six
 
       - name: Ejecutar Ciclo Integrado
         run: python diario.py
@@ -37,7 +37,9 @@ jobs:
           git config --global user.name 'Robot Monitor'
           git config --global user.email 'robot@noreply.github.com'
           git add data/
-          git commit -m "Reporte Integrado BORA-COMPRAR-TGN: $(date +'%Y-%m-%d')" || exit 0
+          git diff --staged --quiet && echo "Sin cambios, nada que commitear" && exit 0
+          git commit -m "Reporte Integrado BORA-COMPRAR-TGN: $(date +'%Y-%m-%d')"
           git push origin HEAD:desarrollo
-          git fetch origin main
-          git push origin HEAD:main --force
+          git checkout main
+          git merge desarrollo --no-edit
+          git push origin main
