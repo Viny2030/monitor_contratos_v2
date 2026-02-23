@@ -30,21 +30,17 @@ def get_con_reintentos(url, intentos=3, timeout=60, espera=15, verify_ssl=False)
     raise Exception(f"❌ Fallaron todos los intentos: {url}")
 
 def extraer_cuit(texto):
-    """Extrae CUIT en formato XX-XXXXXXXX-X o XXXXXXXXXXXXXX del texto"""
     if not texto:
         return ""
-    # Formato con guiones: 30-12345678-9
     m = re.search(r'\b(\d{2}-\d{7,8}-\d{1})\b', texto)
     if m:
         return m.group(1)
-    # Formato sin guiones: 30123456789
     m = re.search(r'\b(20|23|24|27|30|33|34)\d{9}\b', texto)
     if m:
         return m.group(0)
     return ""
 
 def extraer_monto(texto):
-    """Extrae el monto adjudicado del texto"""
     if not texto:
         return ""
     m = re.search(r'(?:MONTO TOTAL ADJUDICADO|TOTAL ADJUDICADO|IMPORTE ADJUDICADO)[^\$]*\$\s*([\d\.,]+)', texto, re.IGNORECASE)
@@ -53,19 +49,22 @@ def extraer_monto(texto):
     return ""
 
 def extraer_proveedor(texto):
-    """Extrae el nombre del proveedor adjudicado"""
     if not texto:
         return ""
     patrones = [
-        r'PROVEEDOR ADJUDICADO[:\s]+([A-ZÁÉÍÓÚÑ][^,\n\.CUIT]{3,60})',
-        r'ADJUDICATARIO[:\s]+([A-ZÁÉÍÓÚÑ][^,\n\.CUIT]{3,60})',
-        r'adjudicada? (?:la firma|a) ([A-ZÁÉÍÓÚÑ][^,\n\.CUIT]{3,60})',
-        r'adjudicó[^\n]*(?:la firma|a) ([A-ZÁÉÍÓÚÑ][^,\n\.CUIT]{3,60})',
+        r'PROVEEDOR ADJUDICADO[:\s]+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)(?:\s*CUIT|\s*$)',
+        r'ADJUDICATARIO[:\s]+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)(?:\s*CUIT|\s*$)',
+        r'adjudicada?\s+(?:la\s+firma\s+|a\s+la\s+firma\s+|a\s+)([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)(?:\s*CUIT|\s*[,\.])',
+        r'adjudicó[^\n]*(?:la firma|a)\s+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)(?:\s*CUIT|\s*[,\.])',
+        r'firma\s+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)\s*(?:CUIT|,\s*C\.U\.I\.T)',
+        r'a\s+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)\s*CUIT\s*[Nn][°º]',
     ]
     for patron in patrones:
         m = re.search(patron, texto, re.IGNORECASE)
         if m:
-            return m.group(1).strip()
+            resultado = m.group(1).strip().rstrip(".,- ")
+            if len(resultado) > 3:
+                return resultado
     return ""
 
 def normalizar_nombre(nombre):
@@ -76,12 +75,19 @@ def normalizar_nombre(nombre):
         n = n.replace(p, " ")
     return re.sub(r'\s+', ' ', n).strip()
 
+def carpeta_mes():
+    """Retorna la ruta data/YYYY-MM/ y la crea si no existe"""
+    hoy = datetime.now()
+    carpeta = os.path.join("data", hoy.strftime("%Y-%m"))
+    os.makedirs(carpeta, exist_ok=True)
+    return carpeta
+
 # ─────────────────────────────────────────
-# SCRAPER 1A: BORA - LICITACIONES (índice)
+# SCRAPER 1A: BORA - ÍNDICE SECCIÓN 3RA
 # ─────────────────────────────────────────
 def extraer_bora_licitaciones():
     url = "https://www.boletinoficial.gob.ar/seccion/tercera"
-    print("\n📰 Extrayendo BORA - Licitaciones (índice)...")
+    print("\n📰 Extrayendo BORA - Sección Tercera (índice)...")
     try:
         response = get_con_reintentos(url)
         soup = BeautifulSoup(response.text, "html.parser")
@@ -101,8 +107,6 @@ def extraer_bora_licitaciones():
                 lineas = [l.strip() for l in elem.text.strip().split("\n") if l.strip()]
                 organismo = lineas[0] if lineas else ""
                 tipo_proceso = lineas[1] if len(lineas) > 1 else ""
-
-                # Solo licitaciones (no adjudicaciones, se procesan aparte)
                 es_adjudicacion = "ADJUDICACION" in categoria_actual.upper()
 
                 datos.append({
@@ -117,20 +121,19 @@ def extraer_bora_licitaciones():
                     "fuente": "BORA Sección 3ra",
                 })
 
-        print(f"  ✅ {len(datos)} avisos en índice ({sum(1 for d in datos if d['es_adjudicacion'])} adjudicaciones)")
+        adj = sum(1 for d in datos if d["es_adjudicacion"])
+        print(f"  ✅ {len(datos)} avisos ({adj} adjudicaciones, {len(datos)-adj} licitaciones)")
         return pd.DataFrame(datos)
 
     except Exception as e:
-        print(f"  ❌ Error: {e}")
+        print(f"  ❌ Error BORA índice: {e}")
         return pd.DataFrame()
 
 # ─────────────────────────────────────────
 # SCRAPER 1B: BORA - DETALLE ADJUDICACIONES
-# Entra a cada aviso de adjudicación y extrae
-# CUIT, proveedor y monto del texto completo
 # ─────────────────────────────────────────
 def extraer_bora_adjudicaciones(df_bora_indice):
-    print("\n🏆 Extrayendo detalle de Adjudicaciones BORA...")
+    print("\n🏆 Extrayendo detalle Adjudicaciones BORA...")
 
     if df_bora_indice.empty:
         return pd.DataFrame()
@@ -141,15 +144,16 @@ def extraer_bora_adjudicaciones(df_bora_indice):
     datos = []
     for _, row in adjudicaciones.iterrows():
         try:
-            time.sleep(1)  # respetar el servidor
+            time.sleep(1)
             resp = get_con_reintentos(row["link"], intentos=2, timeout=30, espera=5)
             soup = BeautifulSoup(resp.text, "html.parser")
 
-            # El texto del aviso está en el div principal de contenido
-            div_texto = soup.find("div", {"id": "cuerpoAviso"}) or \
-                        soup.find("div", class_=re.compile("aviso|detalle|contenido", re.I)) or \
-                        soup.find("article") or soup.find("main")
-
+            div_texto = (
+                soup.find("div", {"id": "cuerpoAviso"}) or
+                soup.find("div", class_=re.compile("aviso|detalle|contenido", re.I)) or
+                soup.find("article") or
+                soup.find("main")
+            )
             texto = div_texto.get_text(separator=" ", strip=True) if div_texto else soup.get_text(separator=" ", strip=True)
 
             cuit = extraer_cuit(texto)
@@ -174,7 +178,7 @@ def extraer_bora_adjudicaciones(df_bora_indice):
             print(f"  {estado} | {proveedor[:40] if proveedor else 'sin proveedor'}")
 
         except Exception as e:
-            print(f"  ❌ Error en aviso {row['aviso_id']}: {e}")
+            print(f"  ❌ Error aviso {row['aviso_id']}: {e}")
             datos.append({
                 "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
                 "fecha_publicacion": row.get("fecha_publicacion", ""),
@@ -189,8 +193,8 @@ def extraer_bora_adjudicaciones(df_bora_indice):
                 "fuente": "BORA Adjudicaciones",
             })
 
-    print(f"  ✅ {len(datos)} adjudicaciones procesadas | "
-          f"{sum(1 for d in datos if d['cuit_proveedor'])} con CUIT extraído")
+    con_cuit = sum(1 for d in datos if d["cuit_proveedor"])
+    print(f"  ✅ {len(datos)} procesadas | {con_cuit} con CUIT extraído")
     return pd.DataFrame(datos)
 
 # ─────────────────────────────────────────
@@ -233,18 +237,17 @@ def extraer_comprar():
         return pd.DataFrame(datos)
 
     except Exception as e:
-        print(f"  ❌ Error: {e}")
+        print(f"  ❌ Error Comprar: {e}")
         return pd.DataFrame()
 
 # ─────────────────────────────────────────
-# SCRAPER 3: PRESUPUESTO ABIERTO (proxy TGN)
+# SCRAPER 3: PRESUPUESTO ABIERTO (TGN)
 # ─────────────────────────────────────────
 def extraer_pagos_tgn():
     anio = datetime.now().year
     print("\n💰 Extrayendo Pagos TGN (Presupuesto Abierto)...")
     urls = [
         f"https://www.presupuestoabierto.gob.ar/sici/rest-api/credito/ejecutado?anio={anio}&categoria=beneficiario&formato=json&limit=100",
-        f"https://apis.datos.gob.ar/series/api/series/?ids=62.3_LMI_0_0_30&limit=100",
     ]
     for url in urls:
         try:
@@ -276,7 +279,7 @@ def extraer_pagos_tgn():
                 return pd.DataFrame(datos)
 
         except Exception as e:
-            print(f"  ⚠️ URL falló: {e}")
+            print(f"  ⚠️ TGN falló: {e}")
 
     print("  ⚠️ TGN no disponible, se omite del cruce")
     return pd.DataFrame()
@@ -298,7 +301,6 @@ def cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn):
             if r.get("cuit"):
                 tgn_idx[str(r["cuit"])] = r
 
-    # Índice Comprar por nro_proceso (para cruzar por expediente si hay match)
     comprar_lista = df_comprar.to_dict("records") if not df_comprar.empty else []
 
     resultados = []
@@ -310,17 +312,22 @@ def cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn):
         # Buscar en TGN por CUIT
         tgn_match = tgn_idx.get(cuit) if cuit else None
 
-        # Buscar en Comprar: coincidencia por nombre de proceso o unidad ejecutora
+        # Buscar en Comprar por palabras clave del organismo
         comprar_matches = []
         if organismo:
-            org_norm = normalizar_nombre(organismo)
+            palabras = [
+                p for p in normalizar_nombre(organismo).split()
+                if len(p) > 3 and p not in ("NACIONAL", "GENERAL", "ARGENTINA", "PUBLICA", "ADMINISTRACION")
+            ]
             for c in comprar_lista:
-                if org_norm and org_norm in normalizar_nombre(c.get("unidad_ejecutora", "")):
+                unidad_norm = normalizar_nombre(c.get("unidad_ejecutora", ""))
+                coincidencias = sum(1 for p in palabras if p in unidad_norm)
+                if coincidencias >= 2:
                     comprar_matches.append(c)
 
-        # Determinar alerta
         en_tgn = tgn_match is not None
         en_comprar = len(comprar_matches) > 0
+
         if en_tgn and en_comprar:
             alerta = "🚨 EN LOS 3 SISTEMAS"
         elif en_comprar:
@@ -338,21 +345,17 @@ def cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn):
             "monto_adjudicado_bora": adj.get("monto_adjudicado"),
             "tipo_proceso": adj.get("tipo_proceso"),
             "link_bora": adj.get("link"),
-            # Comprar
             "en_comprar": "✅ SÍ" if en_comprar else "❌ NO",
             "procesos_comprar": len(comprar_matches),
             "unidad_comprar": comprar_matches[0].get("unidad_ejecutora", "") if comprar_matches else "",
-            # TGN
             "en_tgn": "✅ SÍ" if en_tgn else "❌ NO",
             "beneficiario_tgn": tgn_match["beneficiario"] if en_tgn else "",
             "monto_pagado_tgn": tgn_match["monto_pagado"] if en_tgn else "",
-            # Alerta
             "alerta": alerta,
         })
 
     df = pd.DataFrame(resultados)
     if not df.empty:
-        # Ordenar por alerta (los más importantes primero)
         orden = {"🚨 EN LOS 3 SISTEMAS": 0, "⚠️ BORA + COMPRAR": 1, "⚠️ BORA + TGN": 2, "📋 SOLO BORA": 3}
         df["orden"] = df["alerta"].map(orden)
         df = df.sort_values("orden").drop(columns=["orden"]).reset_index(drop=True)
@@ -365,11 +368,11 @@ def cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn):
     return df
 
 # ─────────────────────────────────────────
-# GUARDAR EXCEL MULTI-PESTAÑA
+# GUARDAR EXCEL EN data/YYYY-MM/
 # ─────────────────────────────────────────
 def guardar_excel(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_tgn):
-    os.makedirs("data", exist_ok=True)
-    archivo = f"data/reporte_{datetime.now().strftime('%Y-%m-%d')}.xlsx"
+    carpeta = carpeta_mes()
+    archivo = os.path.join(carpeta, f"reporte_{datetime.now().strftime('%Y-%m-%d')}.xlsx")
 
     with pd.ExcelWriter(archivo, engine="openpyxl") as writer:
         if not df_cruce.empty:
@@ -383,7 +386,7 @@ def guardar_excel(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_t
         if not df_tgn.empty:
             df_tgn.to_excel(writer, sheet_name="💰 TGN", index=False)
 
-    print(f"\n✅ Excel guardado: {archivo}")
+    print(f"\n✅ Excel guardado en: {archivo}")
     return archivo
 
 # ─────────────────────────────────────────
@@ -393,30 +396,18 @@ if __name__ == "__main__":
     print("🚀 Ciclo Integrado: BORA + Comprar + TGN")
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
 
-    # 1. Índice BORA (licitaciones + adjudicaciones)
-    df_bora_indice = extraer_bora_licitaciones()
-
-    # 2. Detalle de adjudicaciones (entra a cada aviso y extrae CUIT)
+    df_bora_indice    = extraer_bora_licitaciones()
     df_adjudicaciones = extraer_bora_adjudicaciones(df_bora_indice)
+    df_licitaciones   = df_bora_indice[df_bora_indice["es_adjudicacion"] == False].copy() if not df_bora_indice.empty else pd.DataFrame()
+    df_comprar        = extraer_comprar()
+    df_tgn            = extraer_pagos_tgn()
+    df_cruce          = cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn)
 
-    # 3. Solo licitaciones (sin adjudicaciones)
-    df_licitaciones = df_bora_indice[df_bora_indice["es_adjudicacion"] == False].copy() if not df_bora_indice.empty else pd.DataFrame()
-
-    # 4. Comprar
-    df_comprar = extraer_comprar()
-
-    # 5. TGN
-    df_tgn = extraer_pagos_tgn()
-
-    # 6. Cruce por CUIT
-    df_cruce = cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn)
-
-    # 7. Guardar Excel
     guardar_excel(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_tgn)
 
-    print("\n📊 RESUMEN:")
+    print("\n📊 RESUMEN FINAL:")
     print(f"   Licitaciones BORA:  {len(df_licitaciones)}")
-    print(f"   Adjudicaciones:     {len(df_adjudicaciones)} ({sum(1 for _, r in df_adjudicaciones.iterrows() if r.get('cuit_proveedor'))} con CUIT)" if not df_adjudicaciones.empty else "   Adjudicaciones:     0")
+    print(f"   Adjudicaciones:     {len(df_adjudicaciones)}" + (f" ({sum(1 for _, r in df_adjudicaciones.iterrows() if r.get('cuit_proveedor'))} con CUIT)" if not df_adjudicaciones.empty else ""))
     print(f"   Procesos Comprar:   {len(df_comprar)}")
     print(f"   Beneficiarios TGN:  {len(df_tgn)}")
     print(f"   Registros cruzados: {len(df_cruce)}")
