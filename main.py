@@ -77,6 +77,10 @@ def set_cache(df):
     _df_cache = df
 
 
+# ─────────────────────────────────────────
+# PÁGINAS
+# ─────────────────────────────────────────
+
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
     archivos = buscar_todos_los_xlsx(DATA_DIR)
@@ -150,6 +154,10 @@ async def documentacion(request: Request):
 async def licitaciones(request: Request):
     return templates.TemplateResponse("licitaciones.html", {"request": request})
 
+
+# ─────────────────────────────────────────
+# API - MONITOR XAI (original)
+# ─────────────────────────────────────────
 
 @app.get("/api/status")
 def status():
@@ -229,3 +237,56 @@ def descargar_articulo():
         filename="articulo_monteverde_español.docx",
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     )
+
+
+# ─────────────────────────────────────────
+# API - MONITOR LICITACIONES (nuevo)
+# ─────────────────────────────────────────
+
+@app.post("/api/licitaciones/ejecutar")
+def ejecutar_licitaciones():
+    try:
+        from diario import (
+            extraer_bora_licitaciones,
+            extraer_bora_adjudicaciones,
+            extraer_comprar,
+            extraer_pagos_tgn,
+            cruzar_fuentes,
+            guardar_excels,
+        )
+
+        df_bora    = extraer_bora_licitaciones()
+        df_adj     = extraer_bora_adjudicaciones(df_bora)
+        df_licit   = (
+            df_bora[df_bora["es_adjudicacion"] == False].copy().reset_index(drop=True)
+            if not df_bora.empty
+            else pd.DataFrame()
+        )
+        df_comprar = extraer_comprar()
+        df_tgn     = extraer_pagos_tgn()
+        df_cruce   = cruzar_fuentes(df_adj, df_comprar, df_tgn)
+
+        archivo1, archivo2 = guardar_excels(df_cruce, df_adj, df_licit, df_comprar, df_tgn)
+
+        con_cuit = int(df_adj["cuit_proveedor"].astype(bool).sum()) if not df_adj.empty else 0
+        flujo_completo = (
+            int((df_cruce["alerta"] == "🚨 FLUJO COMPLETO: BORA→COMPRAR→TGN").sum())
+            if not df_cruce.empty else 0
+        )
+
+        return {
+            "status": "ok",
+            "licitaciones_bora":       len(df_licit),
+            "adjudicaciones":          len(df_adj),
+            "adjudicaciones_con_cuit": con_cuit,
+            "comprar":                 len(df_comprar),
+            "tgn":                     len(df_tgn),
+            "flujo_cruzado":           len(df_cruce),
+            "flujo_completo":          flujo_completo,
+            "archivo_reporte":         os.path.basename(archivo1),
+            "archivo_flujo":           os.path.basename(archivo2),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
