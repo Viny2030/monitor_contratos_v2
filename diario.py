@@ -43,7 +43,11 @@ def extraer_cuit(texto):
 def extraer_monto(texto):
     if not texto:
         return ""
-    m = re.search(r'(?:MONTO TOTAL ADJUDICADO|TOTAL ADJUDICADO|IMPORTE ADJUDICADO)[^\$]*\$\s*([\d\.,]+)', texto, re.IGNORECASE)
+    m = re.search(
+        r'(?:MONTO TOTAL ADJUDICADO|TOTAL ADJUDICADO|IMPORTE ADJUDICADO|MONTO ADJUDICADO)'
+        r'[^\$\d]*\$?\s*([\d\.,]+)',
+        texto, re.IGNORECASE
+    )
     if m:
         return "$" + m.group(1).strip()
     return ""
@@ -52,12 +56,12 @@ def extraer_proveedor(texto):
     if not texto:
         return ""
     patrones = [
-        r'PROVEEDOR ADJUDICADO[:\s]+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)(?:\s*CUIT|\s*$)',
-        r'ADJUDICATARIO[:\s]+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)(?:\s*CUIT|\s*$)',
-        r'adjudicada?\s+(?:la\s+firma\s+|a\s+la\s+firma\s+|a\s+)([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)(?:\s*CUIT|\s*[,\.])',
-        r'adjudicó[^\n]*(?:la firma|a)\s+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)(?:\s*CUIT|\s*[,\.])',
-        r'firma\s+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)\s*(?:CUIT|,\s*C\.U\.I\.T)',
-        r'a\s+([A-ZÁÉÍÓÚÑ][^\n]{3,60}?)\s*CUIT\s*[Nn][°º]',
+        r'PROVEEDOR ADJUDICADO[:\s]+([A-ZÁÉÍÓÚÑ][^\n\r]{3,80}?)(?:\s*[,\.]?\s*CUIT|\s*$)',
+        r'ADJUDICATARIO[:\s]+([A-ZÁÉÍÓÚÑ][^\n\r]{3,80}?)(?:\s*[,\.]?\s*CUIT|\s*$)',
+        r'adjudicada?\s+(?:la\s+firma\s+|a\s+la\s+firma\s+|a\s+)([A-ZÁÉÍÓÚÑ][^\n\r]{3,80}?)(?:\s*[,\.]?\s*CUIT|\s*[,\.])',
+        r'adjudicó[^\n\r]*?(?:la\s+firma|a)\s+([A-ZÁÉÍÓÚÑ][^\n\r]{3,80}?)(?:\s*[,\.]?\s*CUIT|\s*[,\.])',
+        r'firma\s+([A-ZÁÉÍÓÚÑ][^\n\r]{3,80}?)\s*[,\.]?\s*(?:CUIT|C\.U\.I\.T)',
+        r'([A-ZÁÉÍÓÚÑ][^\n\r]{3,60}?)\s+CUIT\s*[Nn][°º\.]\s*\d{2}-\d',
     ]
     for patron in patrones:
         m = re.search(patron, texto, re.IGNORECASE)
@@ -71,16 +75,60 @@ def normalizar_nombre(nombre):
     if not nombre:
         return ""
     n = nombre.upper().strip()
-    for p in ["S.A.U.", "S.A.", "S.R.L.", "S.A.S.", "S.C.", "LTDA.", " SA ", " SRL "]:
+    for p in ["S.A.U.", "S.A.", "S.R.L.", "S.A.S.", "S.C.", "LTDA.", " SA ", " SRL ", " SE ", "S.E."]:
         n = n.replace(p, " ")
     return re.sub(r'\s+', ' ', n).strip()
 
 def carpeta_mes():
-    """Retorna la ruta data/YYYY-MM/ y la crea si no existe"""
     hoy = datetime.now()
     carpeta = os.path.join("data", hoy.strftime("%Y-%m"))
     os.makedirs(carpeta, exist_ok=True)
     return carpeta
+
+# ─────────────────────────────────────────
+# BORA: API INTERNA DE TEXTO
+# El BORA tiene una API no documentada que
+# devuelve el texto del aviso en JSON
+# ─────────────────────────────────────────
+def obtener_texto_aviso_bora(aviso_id, fecha_pub):
+    """
+    Intenta obtener el texto del aviso via la API interna del BORA.
+    fecha_pub formato: YYYY-MM-DD -> necesitamos YYYYMMDD
+    """
+    fecha_raw = fecha_pub.replace("-", "")
+    urls_a_probar = [
+        f"https://www.boletinoficial.gob.ar/detalleAvisoData/tercera/{aviso_id}/{fecha_raw}",
+        f"https://www.boletinoficial.gob.ar/detalleAviso/tercera/{aviso_id}/{fecha_raw}",
+    ]
+    for url in urls_a_probar:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=20, verify=False)
+            if r.status_code == 200:
+                # Intentar parsear como JSON primero
+                try:
+                    data = r.json()
+                    texto = data.get("textAviso", data.get("texto", data.get("content", "")))
+                    if texto:
+                        return str(texto)
+                except Exception:
+                    pass
+                # Si no es JSON, usar el HTML directamente
+                soup = BeautifulSoup(r.text, "html.parser")
+                # Buscar el div con el texto del aviso
+                for selector in [
+                    {"id": "cuerpoAviso"},
+                    {"id": "textoAviso"},
+                    {"class": "aviso-texto"},
+                    {"class": "detalle-aviso"},
+                ]:
+                    div = soup.find("div", selector)
+                    if div:
+                        return div.get_text(separator=" ", strip=True)
+                # Fallback: todo el texto de la página
+                return soup.get_text(separator=" ", strip=True)
+        except Exception:
+            pass
+    return ""
 
 # ─────────────────────────────────────────
 # SCRAPER 1A: BORA - ÍNDICE SECCIÓN 3RA
@@ -100,25 +148,26 @@ def extraer_bora_licitaciones():
             elif elem.name == "a" and "/detalleAviso/tercera/" in elem.get("href", ""):
                 href = elem["href"]
                 partes = href.strip("/").split("/")
-                aviso_id = partes[-2] if len(partes) >= 2 else ""
+                aviso_id  = partes[-2] if len(partes) >= 2 else ""
                 fecha_raw = partes[-1] if len(partes) >= 1 else ""
                 fecha_pub = f"{fecha_raw[:4]}-{fecha_raw[4:6]}-{fecha_raw[6:]}" if len(fecha_raw) == 8 else fecha_raw
 
+                # El texto del link tiene: ORGANISMO \n TIPO PROCESO
                 lineas = [l.strip() for l in elem.text.strip().split("\n") if l.strip()]
-                organismo = lineas[0] if lineas else ""
-                tipo_proceso = lineas[1] if len(lineas) > 1 else ""
+                organismo     = lineas[0] if len(lineas) > 0 else ""
+                tipo_proceso  = lineas[1] if len(lineas) > 1 else ""
                 es_adjudicacion = "ADJUDICACION" in categoria_actual.upper()
 
                 datos.append({
-                    "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
+                    "fecha_extraccion":  datetime.now().strftime("%Y-%m-%d"),
                     "fecha_publicacion": fecha_pub,
-                    "organismo": organismo,
-                    "tipo_proceso": tipo_proceso,
-                    "categoria": categoria_actual,
-                    "aviso_id": aviso_id,
-                    "es_adjudicacion": es_adjudicacion,
-                    "link": "https://www.boletinoficial.gob.ar" + href,
-                    "fuente": "BORA Sección 3ra",
+                    "organismo":         organismo,
+                    "tipo_proceso":      tipo_proceso,
+                    "categoria":         categoria_actual,
+                    "aviso_id":          aviso_id,
+                    "es_adjudicacion":   es_adjudicacion,
+                    "link":              "https://www.boletinoficial.gob.ar" + href,
+                    "fuente":            "BORA Sección 3ra",
                 })
 
         adj = sum(1 for d in datos if d["es_adjudicacion"])
@@ -145,52 +194,49 @@ def extraer_bora_adjudicaciones(df_bora_indice):
     for _, row in adjudicaciones.iterrows():
         try:
             time.sleep(1)
-            resp = get_con_reintentos(row["link"], intentos=2, timeout=30, espera=5)
-            soup = BeautifulSoup(resp.text, "html.parser")
+            texto = obtener_texto_aviso_bora(row["aviso_id"], row["fecha_publicacion"])
 
-            div_texto = (
-                soup.find("div", {"id": "cuerpoAviso"}) or
-                soup.find("div", class_=re.compile("aviso|detalle|contenido", re.I)) or
-                soup.find("article") or
-                soup.find("main")
-            )
-            texto = div_texto.get_text(separator=" ", strip=True) if div_texto else soup.get_text(separator=" ", strip=True)
+            # Si no hay texto útil intentar con requests directo
+            if not texto or len(texto) < 50:
+                resp = get_con_reintentos(row["link"], intentos=2, timeout=30, espera=5)
+                soup = BeautifulSoup(resp.text, "html.parser")
+                texto = soup.get_text(separator=" ", strip=True)
 
-            cuit = extraer_cuit(texto)
+            cuit      = extraer_cuit(texto)
             proveedor = extraer_proveedor(texto)
-            monto = extraer_monto(texto)
+            monto     = extraer_monto(texto)
 
             datos.append({
-                "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
-                "fecha_publicacion": row["fecha_publicacion"],
+                "fecha_extraccion":     datetime.now().strftime("%Y-%m-%d"),
+                "fecha_publicacion":    row["fecha_publicacion"],
                 "organismo_contratante": row["organismo"],
-                "tipo_proceso": row["tipo_proceso"],
-                "aviso_id": row["aviso_id"],
-                "link": row["link"],
+                "tipo_proceso":         row["tipo_proceso"],
+                "aviso_id":             row["aviso_id"],
+                "link":                 row["link"],
                 "proveedor_adjudicado": proveedor,
-                "cuit_proveedor": cuit,
-                "monto_adjudicado": monto,
-                "texto_completo": texto[:500],
-                "fuente": "BORA Adjudicaciones",
+                "cuit_proveedor":       cuit,
+                "monto_adjudicado":     monto,
+                "texto_muestra":        texto[:300],
+                "fuente":               "BORA Adjudicaciones",
             })
 
-            estado = f"✅ CUIT: {cuit}" if cuit else "⚠️ sin CUIT"
-            print(f"  {estado} | {proveedor[:40] if proveedor else 'sin proveedor'}")
+            estado = f"✅ CUIT:{cuit}" if cuit else "⚠️ sin CUIT"
+            print(f"  {estado} | {proveedor[:40] if proveedor else 'sin proveedor'} | {monto}")
 
         except Exception as e:
             print(f"  ❌ Error aviso {row['aviso_id']}: {e}")
             datos.append({
-                "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
-                "fecha_publicacion": row.get("fecha_publicacion", ""),
+                "fecha_extraccion":     datetime.now().strftime("%Y-%m-%d"),
+                "fecha_publicacion":    row.get("fecha_publicacion", ""),
                 "organismo_contratante": row.get("organismo", ""),
-                "tipo_proceso": row.get("tipo_proceso", ""),
-                "aviso_id": row.get("aviso_id", ""),
-                "link": row.get("link", ""),
+                "tipo_proceso":         row.get("tipo_proceso", ""),
+                "aviso_id":             row.get("aviso_id", ""),
+                "link":                 row.get("link", ""),
                 "proveedor_adjudicado": "",
-                "cuit_proveedor": "",
-                "monto_adjudicado": "",
-                "texto_completo": f"ERROR: {e}",
-                "fuente": "BORA Adjudicaciones",
+                "cuit_proveedor":       "",
+                "monto_adjudicado":     "",
+                "texto_muestra":        f"ERROR: {e}",
+                "fuente":               "BORA Adjudicaciones",
             })
 
     con_cuit = sum(1 for d in datos if d["cuit_proveedor"])
@@ -205,32 +251,32 @@ def extraer_comprar():
     print("\n🛒 Extrayendo Comprar.gob.ar...")
     try:
         response = get_con_reintentos(url, timeout=60)
-        soup = BeautifulSoup(response.text, "html.parser")
-        tabla = soup.find("table", {"id": "ctl00_CPH1_GridListaPliegosAperturaProxima"})
+        soup     = BeautifulSoup(response.text, "html.parser")
+        tabla    = soup.find("table", {"id": "ctl00_CPH1_GridListaPliegosAperturaProxima"})
 
         if not tabla:
             print("  ⚠️ Tabla no encontrada")
             return pd.DataFrame()
 
-        rows = tabla.find_all("tr")
+        rows  = tabla.find_all("tr")
         datos = []
         for row in rows[1:]:
             cols = row.find_all("td")
             if len(cols) > 4:
                 link_tag = cols[0].find("a") or cols[1].find("a") or cols[2].find("a")
-                href = link_tag["href"] if link_tag else ""
+                href     = link_tag["href"] if link_tag else ""
                 link_real = "https://comprar.gob.ar" + href if href.startswith("/") else url
 
                 datos.append({
                     "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
-                    "nro_proceso": cols[0].text.strip(),
-                    "nombre_proceso": cols[1].text.strip(),
-                    "tipo_proceso": cols[2].text.strip(),
-                    "fecha_apertura": cols[3].text.strip(),
-                    "estado": cols[4].text.strip(),
+                    "nro_proceso":      cols[0].text.strip(),
+                    "nombre_proceso":   cols[1].text.strip(),
+                    "tipo_proceso":     cols[2].text.strip(),
+                    "fecha_apertura":   cols[3].text.strip(),
+                    "estado":           cols[4].text.strip(),
                     "unidad_ejecutora": cols[5].text.strip() if len(cols) > 5 else "",
-                    "link": link_real,
-                    "fuente": "Comprar.gob.ar",
+                    "link":             link_real,
+                    "fuente":           "Comprar.gob.ar",
                 })
 
         print(f"  ✅ {len(datos)} procesos extraídos")
@@ -248,30 +294,31 @@ def extraer_pagos_tgn():
     print("\n💰 Extrayendo Pagos TGN (Presupuesto Abierto)...")
     urls = [
         f"https://www.presupuestoabierto.gob.ar/sici/rest-api/credito/ejecutado?anio={anio}&categoria=beneficiario&formato=json&limit=100",
+        f"https://www.presupuestoabierto.gob.ar/sici/rest-api/credito/ejecutado?anio={anio}&limit=100",
     ]
     for url in urls:
         try:
             response = get_con_reintentos(url, intentos=2, timeout=30, espera=5)
-            data = response.json()
-            items = data if isinstance(data, list) else data.get("data", data.get("items", data.get("results", [])))
+            data     = response.json()
+            items    = data if isinstance(data, list) else data.get("data", data.get("items", data.get("results", [])))
 
             if not items:
                 continue
 
             datos = []
             for item in items[:100]:
-                cuit = str(item.get("cuit", item.get("beneficiario_cuit", item.get("cuit_beneficiario", "")))).strip()
+                cuit   = str(item.get("cuit", item.get("beneficiario_cuit", item.get("cuit_beneficiario", "")))).strip()
                 nombre = str(item.get("desc_beneficiario", item.get("beneficiario", item.get("nombre", "")))).strip()
-                monto = item.get("monto_pagado", item.get("pagado", item.get("monto", item.get("devengado", 0))))
+                monto  = item.get("monto_pagado", item.get("pagado", item.get("monto", item.get("devengado", 0))))
 
                 if nombre and nombre not in ("nan", "None", ""):
                     datos.append({
                         "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
-                        "anio": anio,
-                        "cuit": cuit,
-                        "beneficiario": nombre,
-                        "monto_pagado": monto,
-                        "fuente": "Presupuesto Abierto TGN",
+                        "anio":             anio,
+                        "cuit":             cuit,
+                        "beneficiario":     nombre,
+                        "monto_pagado":     monto,
+                        "fuente":           "Presupuesto Abierto TGN",
                     })
 
             if datos:
@@ -279,7 +326,7 @@ def extraer_pagos_tgn():
                 return pd.DataFrame(datos)
 
         except Exception as e:
-            print(f"  ⚠️ TGN falló: {e}")
+            print(f"  ⚠️ TGN url falló: {e}")
 
     print("  ⚠️ TGN no disponible, se omite del cruce")
     return pd.DataFrame()
@@ -303,9 +350,16 @@ def cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn):
 
     comprar_lista = df_comprar.to_dict("records") if not df_comprar.empty else []
 
+    # Palabras a ignorar en el matching de organismo
+    STOP_WORDS = {
+        "NACIONAL", "GENERAL", "ARGENTINA", "PUBLICA", "ADMINISTRACION",
+        "DIRECCION", "SECRETARIA", "MINISTERIO", "AGENCIA", "INSTITUTO",
+        "FEDERAL", "REPUBLICA", "ESTADO", "SERVICIO", "OFICINA"
+    }
+
     resultados = []
     for _, adj in df_adjudicaciones.iterrows():
-        cuit = str(adj.get("cuit_proveedor", "")).strip()
+        cuit      = str(adj.get("cuit_proveedor", "")).strip()
         proveedor = adj.get("proveedor_adjudicado", "")
         organismo = adj.get("organismo_contratante", "")
 
@@ -317,15 +371,15 @@ def cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn):
         if organismo:
             palabras = [
                 p for p in normalizar_nombre(organismo).split()
-                if len(p) > 3 and p not in ("NACIONAL", "GENERAL", "ARGENTINA", "PUBLICA", "ADMINISTRACION")
+                if len(p) > 3 and p not in STOP_WORDS
             ]
             for c in comprar_lista:
-                unidad_norm = normalizar_nombre(c.get("unidad_ejecutora", ""))
+                unidad_norm  = normalizar_nombre(c.get("unidad_ejecutora", ""))
                 coincidencias = sum(1 for p in palabras if p in unidad_norm)
                 if coincidencias >= 2:
                     comprar_matches.append(c)
 
-        en_tgn = tgn_match is not None
+        en_tgn    = tgn_match is not None
         en_comprar = len(comprar_matches) > 0
 
         if en_tgn and en_comprar:
@@ -338,27 +392,32 @@ def cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn):
             alerta = "📋 SOLO BORA"
 
         resultados.append({
-            "fecha": adj.get("fecha_extraccion"),
-            "organismo_contratante": organismo,
-            "proveedor_adjudicado": proveedor,
-            "cuit_proveedor": cuit,
-            "monto_adjudicado_bora": adj.get("monto_adjudicado"),
-            "tipo_proceso": adj.get("tipo_proceso"),
-            "link_bora": adj.get("link"),
-            "en_comprar": "✅ SÍ" if en_comprar else "❌ NO",
-            "procesos_comprar": len(comprar_matches),
-            "unidad_comprar": comprar_matches[0].get("unidad_ejecutora", "") if comprar_matches else "",
-            "en_tgn": "✅ SÍ" if en_tgn else "❌ NO",
-            "beneficiario_tgn": tgn_match["beneficiario"] if en_tgn else "",
-            "monto_pagado_tgn": tgn_match["monto_pagado"] if en_tgn else "",
-            "alerta": alerta,
+            "fecha":                  adj.get("fecha_extraccion"),
+            "organismo_contratante":  organismo,
+            "proveedor_adjudicado":   proveedor,
+            "cuit_proveedor":         cuit,
+            "monto_adjudicado_bora":  adj.get("monto_adjudicado"),
+            "tipo_proceso":           adj.get("tipo_proceso"),
+            "link_bora":              adj.get("link"),
+            "en_comprar":             "✅ SÍ" if en_comprar else "❌ NO",
+            "procesos_comprar":       len(comprar_matches),
+            "unidad_comprar":         comprar_matches[0].get("unidad_ejecutora", "") if comprar_matches else "",
+            "en_tgn":                 "✅ SÍ" if en_tgn else "❌ NO",
+            "beneficiario_tgn":       tgn_match["beneficiario"] if en_tgn else "",
+            "monto_pagado_tgn":       tgn_match["monto_pagado"] if en_tgn else "",
+            "alerta":                 alerta,
         })
 
     df = pd.DataFrame(resultados)
     if not df.empty:
-        orden = {"🚨 EN LOS 3 SISTEMAS": 0, "⚠️ BORA + COMPRAR": 1, "⚠️ BORA + TGN": 2, "📋 SOLO BORA": 3}
-        df["orden"] = df["alerta"].map(orden)
-        df = df.sort_values("orden").drop(columns=["orden"]).reset_index(drop=True)
+        orden = {
+            "🚨 EN LOS 3 SISTEMAS": 0,
+            "⚠️ BORA + COMPRAR":    1,
+            "⚠️ BORA + TGN":        2,
+            "📋 SOLO BORA":         3,
+        }
+        df["_orden"] = df["alerta"].map(orden)
+        df = df.sort_values("_orden").drop(columns=["_orden"]).reset_index(drop=True)
 
     print(f"  ✅ {len(df)} registros cruzados")
     if not df.empty:
@@ -398,16 +457,26 @@ if __name__ == "__main__":
 
     df_bora_indice    = extraer_bora_licitaciones()
     df_adjudicaciones = extraer_bora_adjudicaciones(df_bora_indice)
-    df_licitaciones   = df_bora_indice[df_bora_indice["es_adjudicacion"] == False].copy() if not df_bora_indice.empty else pd.DataFrame()
-    df_comprar        = extraer_comprar()
-    df_tgn            = extraer_pagos_tgn()
-    df_cruce          = cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn)
+
+    df_licitaciones = pd.DataFrame()
+    if not df_bora_indice.empty:
+        df_licitaciones = df_bora_indice[
+            df_bora_indice["es_adjudicacion"] == False
+        ].copy().reset_index(drop=True)
+
+    df_comprar = extraer_comprar()
+    df_tgn     = extraer_pagos_tgn()
+    df_cruce   = cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn)
 
     guardar_excel(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_tgn)
 
+    con_cuit = 0
+    if not df_adjudicaciones.empty:
+        con_cuit = df_adjudicaciones["cuit_proveedor"].astype(bool).sum()
+
     print("\n📊 RESUMEN FINAL:")
     print(f"   Licitaciones BORA:  {len(df_licitaciones)}")
-    print(f"   Adjudicaciones:     {len(df_adjudicaciones)}" + (f" ({sum(1 for _, r in df_adjudicaciones.iterrows() if r.get('cuit_proveedor'))} con CUIT)" if not df_adjudicaciones.empty else ""))
+    print(f"   Adjudicaciones:     {len(df_adjudicaciones)} ({con_cuit} con CUIT)")
     print(f"   Procesos Comprar:   {len(df_comprar)}")
     print(f"   Beneficiarios TGN:  {len(df_tgn)}")
     print(f"   Registros cruzados: {len(df_cruce)}")
