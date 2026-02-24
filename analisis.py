@@ -101,11 +101,15 @@ MATRIZ_LICITACIONES = {
     },
 
     "Velocidad Adjudicación": {
-        "descripcion": "El proceso fue adjudicado el mismo día de su publicación "
-                       "en BORA, sin tiempo razonable para que oferentes compitan.",
+        "descripcion": "El proceso figura como adjudicado en BORA pero no registra "
+                       "cobro en TGN, indicando posible pago fuera del circuito "
+                       "oficial o demora injustificada.",
         "keywords_tipo": None,
         "peso": 1.5,
-        "umbral": 0,           # días entre publicación y adjudicación
+        "umbral": 0,
+        # NOTA: el indicador original comparaba fecha_extraccion == fecha (falso positivo
+        # estructural porque el scraper corre el mismo día que extrae).
+        # Redefinido: detecta adjudicaciones sin cobro registrado en TGN.
     },
 
     "Proveedor Multi-Organismo": {
@@ -197,7 +201,8 @@ def analizar_adjudicaciones(df_adjudicaciones, df_tgn=None):
         for _, row in df.iterrows():
             cuit  = str(row.get("cuit_proveedor", "")).strip()
             fecha = str(row.get("fecha", "")).strip()
-            if cuit and fecha:
+            # Ignorar CUITs vacíos o inválidos para evitar falsos positivos
+            if cuit and cuit.lower() not in ("nan", "none", "0") and fecha:
                 key = (cuit, fecha)
                 cuit_por_dia[key] = cuit_por_dia.get(key, 0) + 1
 
@@ -235,7 +240,8 @@ def analizar_adjudicaciones(df_adjudicaciones, df_tgn=None):
 
         # 2. PROVEEDOR ÚNICO (mismo CUIT, mismo día, múltiples adjudicaciones)
         cfg = MATRIZ_LICITACIONES["Proveedor Único"]
-        if cuit and fecha:
+        cuit_valido = cuit and cuit.lower() not in ("", "nan", "none", "0")
+        if cuit_valido and fecha:
             frecuencia = cuit_por_dia.get((cuit, fecha), 0)
             if frecuencia >= cfg["umbral"]:
                 indicadores.append(f"🔴 Proveedor Único ({frecuencia}x mismo día)")
@@ -250,12 +256,23 @@ def analizar_adjudicaciones(df_adjudicaciones, df_tgn=None):
                 indicadores.append(f"🟡 Monto Límite (${monto:,.0f} ≈ umbral)")
                 score += cfg["peso"]
 
-        # 4. VELOCIDAD DE ADJUDICACIÓN (publicado y adjudicado el mismo día)
+        # 4. ADJUDICADO SIN COBRO EN TGN
+        # ─────────────────────────────────────────────────────────────
+        # El indicador original comparaba fecha == fecha_extraccion, lo que
+        # generaba un falso positivo estructural (el scraper siempre corre
+        # el mismo día que extrae, entonces TODOS los registros lo disparaban).
+        #
+        # Redefinición: detecta procesos adjudicados que no tienen cobro
+        # registrado en TGN — patrón real de pago fuera del circuito oficial
+        # o demora injustificada. Ejemplo concreto: ANSES 63-0063-LPU25 (23/02/2026).
+        # ─────────────────────────────────────────────────────────────
         cfg = MATRIZ_LICITACIONES["Velocidad Adjudicación"]
-        fecha_pub = str(row.get("fecha", "")).strip()
-        fecha_ext = str(row.get("fecha_extraccion", row.get("fecha", ""))).strip()
-        if fecha_pub and fecha_ext and fecha_pub == fecha_ext:
-            indicadores.append("🟡 Adjudicación mismo día de publicación")
+        cobro_tgn = str(row.get("cobro_en_tgn", "")).strip().lower()
+        etapa     = str(row.get("etapa", "")).strip().lower()
+        # Detecta ausencia de cobro: vacío, "no", "❌ no", "nan", etc.
+        sin_cobro = cobro_tgn in ("", "nan", "none", "false", "0") or cobro_tgn.startswith("❌")
+        if sin_cobro and ("adjudicad" in etapa or "adjudicad" in tipo_raw):
+            indicadores.append("🟡 Adjudicado sin cobro registrado en TGN")
             score += cfg["peso"]
 
         # 5. PROVEEDOR MULTI-ORGANISMO EN TGN
