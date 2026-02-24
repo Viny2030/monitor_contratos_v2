@@ -365,6 +365,8 @@ def analizar_boletin(df, directorio_destino=None):
             print(f"❌ Error al guardar CSV: {e2}")
             path_excel = None
 
-    return df, path_excel, pd.DataFrame()
-    # Alias para compatibilidad con test_auditoria.py
-    REGLAS_CLASIFICACION = MATRIZ_TEORICA
+        return df, path_excel, pd.DataFrame()
+
+
+# Alias para compatibilidad con test_auditoria.py
+REGLAS_CLASIFICACION = MATRIZ_TEORICA
