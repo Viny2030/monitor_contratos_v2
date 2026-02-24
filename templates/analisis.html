@@ -5,6 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Análisis en Vivo - Monitor XAI</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .selector-dia {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        .selector-dia h3 {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
+        }
+        .dias-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn-dia {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--mono);
+            font-size: 0.82rem;
+            transition: all 0.2s;
+            box-shadow: none;
+            transform: none;
+        }
+        .btn-dia:hover {
+            border-color: var(--border-bright);
+            color: var(--text-primary);
+            background: var(--bg-card-hover);
+            transform: translateY(-1px);
+            box-shadow: none;
+        }
+        .btn-dia.activo {
+            background: rgba(59,130,246,0.15);
+            border-color: rgba(59,130,246,0.5);
+            color: var(--accent-blue);
+        }
+        .btn-dia.tiene-datos::after {
+            content: ' ✓';
+            color: var(--accent-green);
+            font-size: 0.75rem;
+        }
+        .resumen-dia {
+            background: rgba(6,182,212,0.06);
+            border: 1px solid rgba(6,182,212,0.2);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+        .resumen-dia.visible { display: block; }
+        .resumen-dia strong { color: var(--accent-cyan); }
+    </style>
 </head>
 <body>
     <header>
@@ -16,6 +80,7 @@
             <nav>
                 <a href="/">📊 Dashboard</a>
                 <a href="/analisis-vivo" class="active">🚀 Análisis en Vivo</a>
+                <a href="/licitaciones">🏛️ Licitaciones</a>
                 <a href="/documentacion">📖 Documentación</a>
                 <a href="/docs">🔧 API</a>
             </nav>
@@ -23,16 +88,27 @@
     </header>
 
     <main>
+        <!-- SELECTOR DE DÍA -->
+        <section class="selector-dia">
+            <h3>📅 Seleccionar Día de Análisis</h3>
+            <div class="dias-grid" id="diasGrid">
+                <span style="color:var(--text-muted);font-size:0.82rem;font-family:var(--mono)">Cargando días disponibles...</span>
+            </div>
+            <div class="resumen-dia" id="resumenDia"></div>
+        </section>
+
+        <!-- ANÁLISIS -->
         <section class="analisis-vivo">
             <h2>🔗 Conexión Directa: Comprar.gob.ar</h2>
             <p class="info">
                 Este proceso ejecuta el scraper sobre el portal de compras públicas
                 y aplica la matriz XAI de detección de fenómenos corruptivos.
+                Los resultados se acumulan por día.
             </p>
             <p class="info-aviso">
                 ⚠️ <strong>Nota:</strong> El análisis puede tardar entre 30 y 90 segundos
-                dependiendo de la disponibilidad del portal. Los resultados quedan
-                disponibles en el Dashboard durante esta sesión.
+                dependiendo de la disponibilidad del portal. Si ya existe un reporte para
+                el día seleccionado, se mostrará sin volver a ejecutar el scraping.
             </p>
 
             <button id="btnAnalisis" onclick="ejecutarAnalisis()">
@@ -41,7 +117,7 @@
 
             <div id="spinner" class="spinner" style="display:none;">
                 <div class="loader"></div>
-                <p>Ejecutando Paso 1-2-3 (Scraping + Matriz + Relación)...</p>
+                <p>Ejecutando Paso 1-2-3 (Scraping BORA + Comprar + TGN + Cruce)...</p>
                 <p class="tiempo-estimado">Tiempo estimado: 30–90 segundos</p>
             </div>
 
@@ -50,7 +126,75 @@
     </main>
 
     <script>
+        let diaSeleccionado = null;
+        let diasConDatos = [];
+
+        // ── Cargar días disponibles al iniciar ──
+        async function cargarDias() {
+            try {
+                const resp = await fetch('/api/dias-disponibles');
+                const data = await resp.json();
+                diasConDatos = data.dias || [];
+                renderizarDias(data.dias_todos || [], diasConDatos);
+            } catch (e) {
+                document.getElementById('diasGrid').innerHTML =
+                    '<span style="color:var(--accent-red);font-size:0.82rem">Error cargando días</span>';
+            }
+        }
+
+        function renderizarDias(todosDias, diasConDatos) {
+            const grid = document.getElementById('diasGrid');
+            if (todosDias.length === 0) {
+                grid.innerHTML = '<span style="color:var(--text-muted);font-size:0.82rem;font-family:var(--mono)">No hay días registrados aún</span>';
+                return;
+            }
+            grid.innerHTML = '';
+            todosDias.forEach(dia => {
+                const tieneDatos = diasConDatos.includes(dia);
+                const btn = document.createElement('button');
+                btn.className = 'btn-dia' + (tieneDatos ? ' tiene-datos' : '');
+                btn.textContent = formatearFecha(dia);
+                btn.dataset.dia = dia;
+                btn.onclick = () => seleccionarDia(dia, tieneDatos);
+                grid.appendChild(btn);
+            });
+            // Seleccionar el más reciente por defecto
+            if (todosDias.length > 0) {
+                seleccionarDia(todosDias[todosDias.length - 1], diasConDatos.includes(todosDias[todosDias.length - 1]));
+            }
+        }
+
+        function formatearFecha(fecha) {
+            // "2026-02-23" → "23/02/2026"
+            const partes = fecha.split('-');
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        function seleccionarDia(dia, tieneDatos) {
+            diaSeleccionado = dia;
+            // Resaltar botón activo
+            document.querySelectorAll('.btn-dia').forEach(b => b.classList.remove('activo'));
+            const btnActivo = document.querySelector(`.btn-dia[data-dia="${dia}"]`);
+            if (btnActivo) btnActivo.classList.add('activo');
+
+            // Mostrar resumen
+            const resumen = document.getElementById('resumenDia');
+            if (tieneDatos) {
+                resumen.innerHTML = `📁 Día <strong>${formatearFecha(dia)}</strong>: ya tiene reporte guardado. Podés ver los datos o ejecutar nuevamente para actualizar.`;
+                resumen.classList.add('visible');
+            } else {
+                resumen.innerHTML = `📋 Día <strong>${formatearFecha(dia)}</strong>: sin reporte aún. Hacé clic en el botón para ejecutar el análisis.`;
+                resumen.classList.add('visible');
+            }
+        }
+
+        // ── Ejecutar análisis para el día seleccionado ──
         async function ejecutarAnalisis() {
+            if (!diaSeleccionado) {
+                alert('Seleccioná un día primero');
+                return;
+            }
+
             const btn = document.getElementById('btnAnalisis');
             const spinner = document.getElementById('spinner');
             const resultado = document.getElementById('resultado');
@@ -63,7 +207,7 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-                const resp = await fetch('/api/analisis', {
+                const resp = await fetch(`/api/licitaciones/ejecutar?fecha=${diaSeleccionado}`, {
                     method: 'POST',
                     signal: controller.signal
                 });
@@ -74,30 +218,50 @@
                 if (resp.ok) {
                     resultado.innerHTML = `
                         <div class="exito">
-                            <h3>✅ Análisis completado exitosamente</h3>
+                            <h3>✅ Análisis completado — ${formatearFecha(diaSeleccionado)}</h3>
                             <div class="metricas" style="margin-top:16px;margin-bottom:16px">
                                 <div class="card">
-                                    <h3>Procesos Analizados</h3>
-                                    <span class="numero">${data.total_procesos}</span>
+                                    <h3>Licitaciones BORA</h3>
+                                    <span class="numero">${data.licitaciones_bora}</span>
                                 </div>
                                 <div class="card">
-                                    <h3>Índice Promedio</h3>
-                                    <span class="numero">${data.indice_promedio}<small style="font-size:1rem;color:var(--text-muted)">/10</small></span>
+                                    <h3>Adjudicaciones</h3>
+                                    <span class="numero">${data.adjudicaciones}</span>
+                                </div>
+                                <div class="card">
+                                    <h3>Con CUIT</h3>
+                                    <span class="numero">${data.adjudicaciones_con_cuit}</span>
+                                </div>
+                                <div class="card">
+                                    <h3>Procesos Comprar</h3>
+                                    <span class="numero">${data.comprar}</span>
+                                </div>
+                                <div class="card">
+                                    <h3>Flujo Completo</h3>
+                                    <span class="numero">${data.flujo_completo}</span>
+                                </div>
+                                <div class="card" style="border-color:rgba(239,68,68,0.4)">
+                                    <h3>Riesgo Alto</h3>
+                                    <span class="numero" style="color:#ef4444">${data.riesgo_alto}</span>
+                                </div>
+                                <div class="card" style="border-color:rgba(245,158,11,0.4)">
+                                    <h3>Riesgo Medio</h3>
+                                    <span class="numero" style="color:#f59e0b">${data.riesgo_medio}</span>
                                 </div>
                             </div>
-                            <p>📁 Reporte guardado: <strong style="color:var(--accent-cyan)">${data.reporte}</strong></p>
+                            <p>📁 Reporte completo: <strong style="color:var(--accent-cyan)">${data.archivo_reporte}</strong></p>
+                            <p>📁 Flujo licitaciones: <strong style="color:var(--accent-cyan)">${data.archivo_flujo}</strong></p>
                             <p style="margin-top:12px"><a href="/">📊 Ver resultados en el Dashboard →</a></p>
+                            <p style="margin-top:6px"><a href="/licitaciones">🏛️ Ver Licitaciones →</a></p>
                         </div>`;
+                    // Recargar días para marcar el nuevo como "tiene datos"
+                    cargarDias();
                 } else {
                     const detalle = data.detail || 'Error desconocido';
                     resultado.innerHTML = `
                         <div class="error">
                             <h3>❌ Error en el análisis</h3>
                             <p>${detalle}</p>
-                            ${detalle.includes('comprar.gob.ar') ? `
-                            <p style="margin-top:10px">💡 <strong>Sugerencia:</strong> El portal comprar.gob.ar puede no estar
-                            accesible desde Railway. Intente nuevamente en unos minutos o
-                            ejecute el análisis en su entorno local.</p>` : ''}
                         </div>`;
                 }
             } catch (e) {
@@ -116,7 +280,9 @@
             resultado.style.display = 'block';
             btn.disabled = false;
         }
+
+        // Iniciar
+        cargarDias();
     </script>
 </body>
 </html>
-<a href="/licitaciones">🏛️ Licitaciones</a>

@@ -34,7 +34,6 @@
         a { color: var(--accent-cyan); text-decoration: none; }
         a:hover { text-decoration: underline; }
 
-        /* HEADER */
         header {
             background: var(--bg-card2);
             border-bottom: 1px solid var(--border);
@@ -56,14 +55,11 @@
         .live-dot { display: inline-block; width: 7px; height: 7px; background: var(--accent-green); border-radius: 50%; animation: blink 2s ease-in-out infinite; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-        /* MAIN */
         main { max-width: 1400px; margin: 0 auto; padding: 24px 24px 48px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* BANNER */
         .info-reporte { background: rgba(6,182,212,.06); border: 1px solid rgba(6,182,212,.2); border-radius: 8px; padding: 10px 18px; font-size: .8rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .info-left { display: flex; align-items: center; gap: 10px; }
 
-        /* BOTÓN EJECUTAR */
         .btn-ejecutar {
             background: linear-gradient(135deg, rgba(6,182,212,.2), rgba(59,130,246,.2));
             border: 1px solid var(--accent-cyan);
@@ -82,7 +78,6 @@
         .btn-ejecutar:active { transform: scale(.98); }
         .btn-ejecutar:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-        /* SPINNER */
         .spinner-inline {
             width: 14px; height: 14px;
             border: 2px solid rgba(6,182,212,.3);
@@ -93,13 +88,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* RESULTADO EJECUCIÓN */
-        .resultado-box {
-            border-radius: 8px;
-            padding: 14px 18px;
-            font-size: .82rem;
-            display: none;
-        }
+        .resultado-box { border-radius: 8px; padding: 14px 18px; font-size: .82rem; display: none; }
         .resultado-box.exito { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.25); color: var(--text-secondary); }
         .resultado-box.error { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); color: var(--accent-red); }
         .resultado-box strong { color: var(--text-primary); }
@@ -108,7 +97,6 @@
         .resultado-stat span:first-child { font-family: var(--mono); font-size: 1.3rem; font-weight: 700; color: var(--accent-cyan); line-height: 1; }
         .resultado-stat span:last-child  { font-size: .7rem; color: var(--text-muted); margin-top: 2px; }
 
-        /* PIPELINE */
         .pipeline-label { font-size: .7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em; font-family: var(--mono); margin-bottom: 10px; }
         .pipeline { display: grid; grid-template-columns: 1fr 32px 1fr 32px 1fr 32px 1fr; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .pipe-stage { padding: 18px 20px; cursor: pointer; transition: background .15s; position: relative; }
@@ -133,7 +121,6 @@
         .s4 .stage-num { color:var(--accent-green); }
         .stage-sub { font-size:.72rem; color:var(--text-muted); margin-top:3px; }
 
-        /* METRICAS */
         .metricas { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
         .card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:16px 20px; }
         .card h3 { font-size:.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; font-weight:500; margin-bottom:8px; }
@@ -144,10 +131,8 @@
         .card.cyan .numero   { color:var(--accent-cyan); }
         .card.yellow .numero { color:var(--accent-yellow); }
 
-        /* GRID */
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 
-        /* PANEL */
         .panel { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
         .panel-header { padding:13px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
         .panel-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-secondary); }
@@ -157,7 +142,6 @@
         .pb-yellow { background:rgba(245,158,11,.12); color:var(--accent-yellow); border:1px solid rgba(245,158,11,.25); }
         .pb-green  { background:rgba(16,185,129,.12); color:var(--accent-green);  border:1px solid rgba(16,185,129,.25); }
 
-        /* FLUJO LIST */
         .flujo-item { padding:13px 18px; border-bottom:1px solid rgba(30,45,74,.5); display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start; transition:background .15s; }
         .flujo-item:last-child { border-bottom:none; }
         .flujo-item:hover { background:rgba(255,255,255,.018); }
@@ -167,7 +151,6 @@
         .flujo-right { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
         .flujo-monto { font-family:var(--mono); font-size:.8rem; color:var(--accent-yellow); font-weight:600; }
 
-        /* CHIPS */
         .chip { display:inline-flex; align-items:center; gap:3px; padding:3px 9px; border-radius:20px; font-size:.7rem; font-weight:600; white-space:nowrap; }
         .chip-sin-cuit  { background:rgba(239,68,68,.1);  color:var(--accent-red);   border:1px solid rgba(239,68,68,.2); }
         .chip-adjudicado{ background:rgba(16,185,129,.1); color:var(--accent-green); border:1px solid rgba(16,185,129,.2); }
@@ -177,7 +160,6 @@
         .chip-ok        { background:rgba(16,185,129,.1); color:var(--accent-green); }
         .chip-no        { background:rgba(100,116,139,.08);color:var(--text-muted); }
 
-        /* TABS */
         .tabs { display:flex; gap:0; border-bottom:1px solid var(--border); padding:0 18px; }
         .tab-btn { background:none; border:none; padding:11px 16px; font-size:.78rem; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; transition:color .15s; font-family:inherit; }
         .tab-btn:hover { color:var(--text-primary); }
@@ -185,7 +167,6 @@
         .tab-content { display:none; }
         .tab-content.active { display:block; }
 
-        /* TABLE */
         .tabla-scroll { overflow-x:auto; }
         table { width:100%; border-collapse:collapse; }
         thead tr { border-bottom:1px solid var(--border); }
@@ -197,21 +178,17 @@
         .td-name { color:var(--text-primary); font-weight:500; max-width:300px; }
         .td-link a { font-family:var(--mono); font-size:.7rem; color:var(--accent-cyan); }
 
-        /* CHART */
         .grafico-wrap { padding:18px; position:relative; height:240px; }
 
-        /* FILTER ROW */
         .filter-row { display:flex; align-items:center; gap:8px; }
         .btn-reset { background:none; border:1px solid var(--border); color:var(--text-muted); padding:3px 10px; border-radius:6px; cursor:pointer; font-size:.7rem; font-family:inherit; transition:border-color .15s; }
         .btn-reset:hover { border-color:var(--text-muted); color:var(--text-primary); }
 
-        /* EMPTY / AVISO */
         .empty { padding:28px; text-align:center; color:var(--text-muted); font-size:.82rem; }
         .aviso-sin-datos { background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.2); border-radius:10px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
         .aviso-texto { font-size:.85rem; color:var(--text-secondary); }
         .aviso-texto strong { color:var(--accent-yellow); }
 
-        /* SCROLLBAR */
         ::-webkit-scrollbar { width:5px; height:5px; }
         ::-webkit-scrollbar-track { background:var(--bg); }
         ::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:3px; }
@@ -245,10 +222,9 @@
 
 <main>
 
-    <!-- BANNER + BOTÓN EJECUTAR -->
     <div class="info-reporte">
         <div class="info-left">
-            <span class="live-dot" id="live-dot"></span>
+            <span class="live-dot"></span>
             <span>Datos al: <strong id="fecha-reporte">—</strong> &nbsp;·&nbsp;
             Fuentes: BORA Sección 3ra · Comprar.gob.ar · TGN</span>
         </div>
@@ -258,19 +234,16 @@
         </button>
     </div>
 
-    <!-- RESULTADO EJECUCIÓN -->
     <div class="resultado-box" id="resultado-box">
         <div id="resultado-contenido"></div>
     </div>
 
-    <!-- AVISO SIN DATOS (visible solo si no hay datos) -->
     <div class="aviso-sin-datos" id="aviso-sin-datos" style="display:none">
         <div class="aviso-texto">
             <strong>📭 Sin datos cargados.</strong> Presioná <strong>Actualizar datos en vivo</strong> para ejecutar el ciclo completo BORA → Comprar → TGN.
         </div>
     </div>
 
-    <!-- PIPELINE -->
     <div id="seccion-datos">
         <div class="pipeline-label">📡 Flujo de monitoreo · BORA → Comprar → TGN</div>
         <div class="pipeline">
@@ -304,7 +277,6 @@
         </div>
     </div>
 
-    <!-- METRICAS -->
     <div class="metricas">
         <div class="card cyan">
             <h3>Total Publicaciones BORA</h3>
@@ -324,7 +296,6 @@
         </div>
     </div>
 
-    <!-- FLUJO CRUZADO -->
     <div class="panel">
         <div class="panel-header">
             <div class="panel-title">🔗 Flujo Cruzado · BORA → Comprar → TGN</div>
@@ -333,10 +304,9 @@
                 <button class="btn-reset" onclick="resetFilter()">✕ Reset</button>
             </div>
         </div>
-        <div id="flujo-table"><div class="empty">Ejecutá el ciclo para ver datos.</div></div>
+        <div id="flujo-table"><div class="empty">Cargando datos...</div></div>
     </div>
 
-    <!-- TABS DETALLE -->
     <div class="panel">
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab(this,'bora-licit')">📰 BORA Licitaciones <span id="tab-cnt-bora"></span></button>
@@ -346,24 +316,23 @@
         <div class="tab-content active" id="bora-licit">
             <div class="tabla-scroll"><table>
                 <thead><tr><th>Aviso ID</th><th>Organismo</th><th>Tipo Proceso</th><th>Categoría</th><th>Adjudicación</th><th>Link</th></tr></thead>
-                <tbody id="tbl-bora"><tr><td colspan="6" class="empty">Sin datos.</td></tr></tbody>
+                <tbody id="tbl-bora"><tr><td colspan="6" class="empty">Cargando...</td></tr></tbody>
             </table></div>
         </div>
         <div class="tab-content" id="comprar-licit">
             <div class="tabla-scroll"><table>
                 <thead><tr><th>Nro Proceso</th><th>Nombre</th><th>Tipo</th><th>Apertura</th><th>Estado</th><th>Unidad Ejecutora</th><th>Link</th></tr></thead>
-                <tbody id="tbl-comprar"><tr><td colspan="7" class="empty">Sin datos.</td></tr></tbody>
+                <tbody id="tbl-comprar"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
             </table></div>
         </div>
         <div class="tab-content" id="adj-tab">
             <div class="tabla-scroll"><table>
                 <thead><tr><th>Aviso ID</th><th>Organismo</th><th>Tipo Proceso</th><th>Proveedor</th><th>CUIT</th><th>Monto</th><th>Link</th></tr></thead>
-                <tbody id="tbl-adj"><tr><td colspan="7" class="empty">Sin datos.</td></tr></tbody>
+                <tbody id="tbl-adj"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
             </table></div>
         </div>
     </div>
 
-    <!-- GRAFICOS -->
     <div class="grid-2">
         <div class="panel">
             <div class="panel-header">
@@ -384,12 +353,10 @@
 </main>
 
 <script>
-/* ─── ESTADO GLOBAL ─────────────────────────────────────────────── */
 let DATA = { flujo: [], bora_licitaciones: [], bora_adjudicaciones: [], comprar: [] };
 let grafico1 = null;
 let grafico2 = null;
 
-/* ─── HELPERS ───────────────────────────────────────────────────── */
 function etapaChip(e) {
     if (!e) return '';
     if (e.includes('FLUJO COMPLETO'))  return `<span class="chip chip-flujo">🚨 Flujo Completo</span>`;
@@ -411,10 +378,10 @@ function checkChip(val, label) {
     return `<span class="chip ${ok ? 'chip-ok chip-comprar' : 'chip-no'}">${label}</span>`;
 }
 function lnk(url, lbl) {
-    return url ? `<a href="${url}" target="_blank">${lbl || '↗ Ver'}</a>` : '—';
+    return url && url !== '' ? `<a href="${url}" target="_blank">${lbl || '↗ Ver'}</a>` : '—';
 }
 
-/* ─── EJECUTAR CICLO ────────────────────────────────────────────── */
+/* ─── EJECUTAR CICLO ─────────────────────────────────────────── */
 async function ejecutarCiclo() {
     const btn     = document.getElementById('btn-ejecutar');
     const spinner = document.getElementById('spinner');
@@ -430,70 +397,36 @@ async function ejecutarCiclo() {
 
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 180000); // 3 min
-
-        const resp = await fetch('/api/licitaciones/ejecutar', {
-            method: 'POST',
-            signal: controller.signal,
-        });
+        const timeout = setTimeout(() => controller.abort(), 180000);
+        const resp = await fetch('/api/licitaciones/ejecutar', { method: 'POST', signal: controller.signal });
         clearTimeout(timeout);
-
         const data = await resp.json();
 
         if (resp.ok) {
             resCont.innerHTML = `
                 <strong>✅ Ciclo completado exitosamente</strong>
                 <div class="resultado-stats">
-                    <div class="resultado-stat">
-                        <span>${data.licitaciones_bora ?? 0}</span>
-                        <span>Licitaciones BORA</span>
-                    </div>
-                    <div class="resultado-stat">
-                        <span>${data.adjudicaciones ?? 0}</span>
-                        <span>Adjudicaciones</span>
-                    </div>
-                    <div class="resultado-stat">
-                        <span>${data.adjudicaciones_con_cuit ?? 0}</span>
-                        <span>Con CUIT</span>
-                    </div>
-                    <div class="resultado-stat">
-                        <span>${data.comprar ?? 0}</span>
-                        <span>Comprar.gob.ar</span>
-                    </div>
-                    <div class="resultado-stat">
-                        <span>${data.tgn ?? 0}</span>
-                        <span>Beneficiarios TGN</span>
-                    </div>
-                    <div class="resultado-stat">
-                        <span style="color:var(--accent-red)">${data.flujo_completo ?? 0}</span>
-                        <span>Flujo Completo</span>
-                    </div>
+                    <div class="resultado-stat"><span>${data.licitaciones_bora ?? 0}</span><span>Licitaciones BORA</span></div>
+                    <div class="resultado-stat"><span>${data.adjudicaciones ?? 0}</span><span>Adjudicaciones</span></div>
+                    <div class="resultado-stat"><span>${data.adjudicaciones_con_cuit ?? 0}</span><span>Con CUIT</span></div>
+                    <div class="resultado-stat"><span>${data.comprar ?? 0}</span><span>Comprar.gob.ar</span></div>
+                    <div class="resultado-stat"><span>${data.tgn ?? 0}</span><span>Beneficiarios TGN</span></div>
+                    <div class="resultado-stat"><span style="color:var(--accent-red)">${data.flujo_completo ?? 0}</span><span>Flujo Completo</span></div>
                 </div>
                 <div style="margin-top:10px;font-size:.75rem;color:var(--text-muted)">
                     📁 ${data.archivo_reporte} &nbsp;·&nbsp; ${data.archivo_flujo}
                     &nbsp;·&nbsp; <a href="/">Ver en Dashboard XAI →</a>
                 </div>`;
             resBox.classList.add('exito');
-
-            // Recargar la página para mostrar datos frescos del disco
-            setTimeout(() => location.reload(), 1500);
-
+            // Recargar datos sin recargar la página
+            setTimeout(() => cargarDatosIniciales(data.fecha), 1500);
         } else {
             const detalle = data.detail || 'Error desconocido';
-            resCont.innerHTML = `
-                <strong>❌ Error en el ciclo</strong><br>
-                <span style="margin-top:6px;display:block">${detalle}</span>
-                ${detalle.includes('boletinoficial') || detalle.includes('comprar') ? `
-                <span style="margin-top:8px;display:block;font-size:.75rem">
-                💡 El portal puede no estar accesible desde este entorno. Intentá nuevamente en unos minutos.
-                </span>` : ''}`;
+            resCont.innerHTML = `<strong>❌ Error en el ciclo</strong><br><span style="margin-top:6px;display:block">${detalle}</span>`;
             resBox.classList.add('error');
         }
-
     } catch (e) {
-        let msg = e.name === 'AbortError'
-            ? 'Tiempo de espera agotado (3 minutos). El ciclo de scraping tardó demasiado.'
-            : e.message;
+        const msg = e.name === 'AbortError' ? 'Tiempo de espera agotado (3 minutos).' : e.message;
         resCont.innerHTML = `<strong>❌ Error de conexión</strong><br><span style="margin-top:6px;display:block">${msg}</span>`;
         resBox.classList.add('error');
     }
@@ -504,30 +437,26 @@ async function ejecutarCiclo() {
     btn.disabled = false;
 }
 
-/* ─── RENDER MÉTRICAS ───────────────────────────────────────────── */
+/* ─── RENDER MÉTRICAS ────────────────────────────────────────── */
 function renderMetricas() {
     const f = DATA.flujo;
-    const sinCuit      = f.filter(r => r.etapa?.includes('SIN CUIT')).length;
-    const conCuit      = f.filter(r => r.cuit_proveedor).length;
-    const adjCuit      = f.filter(r => r.etapa?.includes('ADJUDICADO')).length;
-    const pagados      = f.filter(r => r.cobro_en_tgn?.includes('SÍ')).length;
-    const flujoTotal   = f.filter(r => r.alerta?.includes('FLUJO COMPLETO')).length;
+    const sinCuit    = f.filter(r => r.etapa && r.etapa.includes('SIN CUIT')).length;
+    const conCuit    = f.filter(r => r.cuit_proveedor && r.cuit_proveedor !== '').length;
+    const pagados    = f.filter(r => r.cobro_en_tgn && r.cobro_en_tgn.includes('SÍ')).length;
+    const flujoTotal = f.filter(r => r.alerta && r.alerta.includes('FLUJO COMPLETO')).length;
 
-    document.getElementById('cnt-bora').textContent    = DATA.bora_licitaciones.length || '—';
-    document.getElementById('cnt-comprar').textContent = DATA.comprar.length || '—';
-    document.getElementById('cnt-adj').textContent     = DATA.bora_adjudicaciones.filter(r => r.cuit_proveedor).length || '—';
+    document.getElementById('cnt-bora').textContent    = DATA.bora_licitaciones.length  || '—';
+    document.getElementById('cnt-comprar').textContent = DATA.comprar.length             || '—';
+    document.getElementById('cnt-adj').textContent     = DATA.bora_adjudicaciones.filter(r => r.cuit_proveedor && r.cuit_proveedor !== '').length || '—';
     document.getElementById('cnt-tgn').textContent     = pagados || '—';
 
-    document.getElementById('m-bora-total').textContent    = DATA.bora_licitaciones.length + DATA.bora_adjudicaciones.length || '—';
-    document.getElementById('m-cuit').textContent          = conCuit || '—';
-    document.getElementById('m-sin-cuit').textContent      = sinCuit || '—';
+    document.getElementById('m-bora-total').textContent     = (DATA.bora_licitaciones.length + DATA.bora_adjudicaciones.length) || '—';
+    document.getElementById('m-cuit').textContent           = conCuit    || '—';
+    document.getElementById('m-sin-cuit').textContent       = sinCuit    || '—';
     document.getElementById('m-flujo-completo').textContent = flujoTotal || '—';
-
-    const hoy = new Date().toLocaleDateString('es-AR');
-    document.getElementById('fecha-reporte').textContent = hoy;
 }
 
-/* ─── RENDER FLUJO ──────────────────────────────────────────────── */
+/* ─── RENDER FLUJO ───────────────────────────────────────────── */
 function renderFlujo(data) {
     const el = document.getElementById('flujo-table');
     if (!data.length) {
@@ -543,28 +472,28 @@ function renderFlujo(data) {
                     ${alertaChip(r.alerta)}
                     ${checkChip(r.en_comprar, '🛒 Comprar')}
                     ${checkChip(r.cobro_en_tgn, '💵 TGN')}
-                    ${r.cuit_proveedor ? `<span class="chip chip-comprar">CUIT: ${r.cuit_proveedor}</span>` : ''}
+                    ${r.cuit_proveedor && r.cuit_proveedor !== '' ? `<span class="chip chip-comprar">CUIT: ${r.cuit_proveedor}</span>` : ''}
                 </div>
             </div>
             <div class="flujo-right">
-                ${r.monto_adjudicado_bora ? `<div class="flujo-monto">${r.monto_adjudicado_bora}</div>` : ''}
-                ${r.monto_cobrado_tgn ? `<div class="flujo-monto" style="color:var(--accent-green)">${r.monto_cobrado_tgn}</div>` : ''}
+                ${r.monto_adjudicado_bora && r.monto_adjudicado_bora !== '' ? `<div class="flujo-monto">${r.monto_adjudicado_bora}</div>` : ''}
+                ${r.monto_cobrado_tgn && r.monto_cobrado_tgn !== '' ? `<div class="flujo-monto" style="color:var(--accent-green)">${r.monto_cobrado_tgn}</div>` : ''}
                 <div style="font-size:.7rem">${lnk(r.link_bora, '↗ BORA')}</div>
             </div>
         </div>`).join('');
 }
 
-/* ─── TABLAS ────────────────────────────────────────────────────── */
+/* ─── TABLAS ─────────────────────────────────────────────────── */
 function renderBora() {
     const tbody = document.getElementById('tbl-bora');
     if (!DATA.bora_licitaciones.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Sin datos.</td></tr>'; return; }
     tbody.innerHTML = DATA.bora_licitaciones.map(r => `
         <tr>
-            <td class="td-mono">${r.aviso_id}</td>
-            <td class="td-name">${r.organismo}</td>
-            <td style="font-size:.75rem">${r.tipo_proceso}</td>
-            <td style="font-size:.72rem;color:var(--text-muted)">${r.categoria}</td>
-            <td>${r.es_adjudicacion ? '<span class="chip chip-adjudicado">Sí</span>' : '<span class="chip chip-no">No</span>'}</td>
+            <td class="td-mono">${r.aviso_id || ''}</td>
+            <td class="td-name">${r.organismo || ''}</td>
+            <td style="font-size:.75rem">${r.tipo_proceso || ''}</td>
+            <td style="font-size:.72rem;color:var(--text-muted)">${r.categoria || ''}</td>
+            <td>${r.es_adjudicacion === 'True' ? '<span class="chip chip-adjudicado">Sí</span>' : '<span class="chip chip-no">No</span>'}</td>
             <td class="td-link">${lnk(r.link, '↗')}</td>
         </tr>`).join('');
     document.getElementById('tab-cnt-bora').textContent = `(${DATA.bora_licitaciones.length})`;
@@ -575,12 +504,12 @@ function renderComprar() {
     if (!DATA.comprar.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Sin datos.</td></tr>'; return; }
     tbody.innerHTML = DATA.comprar.map(r => `
         <tr>
-            <td class="td-mono">${r.nro_proceso}</td>
-            <td class="td-name">${r.nombre_proceso}</td>
-            <td style="font-size:.72rem">${r.tipo_proceso}</td>
-            <td class="td-mono">${r.fecha_apertura}</td>
-            <td><span class="chip chip-comprar">${r.estado}</span></td>
-            <td style="font-size:.72rem;color:var(--text-muted);max-width:200px">${r.unidad_ejecutora}</td>
+            <td class="td-mono">${r.nro_proceso || ''}</td>
+            <td class="td-name">${r.nombre_proceso || ''}</td>
+            <td style="font-size:.72rem">${r.tipo_proceso || ''}</td>
+            <td class="td-mono">${r.fecha_apertura || ''}</td>
+            <td><span class="chip chip-comprar">${r.estado || ''}</span></td>
+            <td style="font-size:.72rem;color:var(--text-muted);max-width:200px">${r.unidad_ejecutora || ''}</td>
             <td class="td-link">${lnk(r.link, '↗')}</td>
         </tr>`).join('');
     document.getElementById('tab-cnt-comprar').textContent = `(${DATA.comprar.length})`;
@@ -591,28 +520,28 @@ function renderAdj() {
     if (!DATA.bora_adjudicaciones.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Sin datos.</td></tr>'; return; }
     tbody.innerHTML = DATA.bora_adjudicaciones.map(r => `
         <tr>
-            <td class="td-mono">${r.aviso_id}</td>
-            <td class="td-name">${r.organismo_contratante}</td>
-            <td style="font-size:.75rem">${r.tipo_proceso}</td>
+            <td class="td-mono">${r.aviso_id || ''}</td>
+            <td class="td-name">${r.organismo_contratante || ''}</td>
+            <td style="font-size:.75rem">${r.tipo_proceso || ''}</td>
             <td>${r.proveedor_adjudicado || '<span style="color:var(--text-muted)">—</span>'}</td>
-            <td>${r.cuit_proveedor ? `<span class="chip chip-adjudicado">${r.cuit_proveedor}</span>` : '<span style="color:var(--accent-red);font-size:.72rem">Sin CUIT</span>'}</td>
+            <td>${r.cuit_proveedor && r.cuit_proveedor !== '' ? `<span class="chip chip-adjudicado">${r.cuit_proveedor}</span>` : '<span style="color:var(--accent-red);font-size:.72rem">Sin CUIT</span>'}</td>
             <td class="td-mono">${r.monto_adjudicado || '—'}</td>
             <td class="td-link">${lnk(r.link, '↗')}</td>
         </tr>`).join('');
     document.getElementById('tab-cnt-adj').textContent = `(${DATA.bora_adjudicaciones.length})`;
 }
 
-/* ─── FILTROS PIPELINE ──────────────────────────────────────────── */
+/* ─── FILTROS PIPELINE ───────────────────────────────────────── */
 function filterStage(stage) {
     document.querySelectorAll('.pipe-stage').forEach(el => el.classList.remove('active'));
-    const map = { bora: 's1', comprar: 's2', adj: 's3', tgn: 's4' };
+    const map    = { bora: 's1', comprar: 's2', adj: 's3', tgn: 's4' };
     const labels = { bora: 'Todos', comprar: 'En Comprar', adj: 'Adjudicados', tgn: 'Cobros TGN' };
     document.querySelector('.pipe-stage.' + map[stage]).classList.add('active');
     document.getElementById('filter-label').textContent = labels[stage];
     let filtered = DATA.flujo;
-    if (stage === 'comprar') filtered = DATA.flujo.filter(r => r.en_comprar?.includes('SÍ'));
-    if (stage === 'adj')     filtered = DATA.flujo.filter(r => r.cuit_proveedor);
-    if (stage === 'tgn')     filtered = DATA.flujo.filter(r => r.cobro_en_tgn?.includes('SÍ'));
+    if (stage === 'comprar') filtered = DATA.flujo.filter(r => r.en_comprar && r.en_comprar.includes('SÍ'));
+    if (stage === 'adj')     filtered = DATA.flujo.filter(r => r.cuit_proveedor && r.cuit_proveedor !== '');
+    if (stage === 'tgn')     filtered = DATA.flujo.filter(r => r.cobro_en_tgn && r.cobro_en_tgn.includes('SÍ'));
     renderFlujo(filtered);
 }
 function resetFilter() {
@@ -622,7 +551,7 @@ function resetFilter() {
     renderFlujo(DATA.flujo);
 }
 
-/* ─── TABS ──────────────────────────────────────────────────────── */
+/* ─── TABS ───────────────────────────────────────────────────── */
 function switchTab(btn, id) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -630,34 +559,34 @@ function switchTab(btn, id) {
     document.getElementById(id).classList.add('active');
 }
 
-/* ─── GRÁFICOS ──────────────────────────────────────────────────── */
+/* ─── GRÁFICOS ───────────────────────────────────────────────── */
 function renderCharts() {
     Chart.defaults.color = '#64748b';
     Chart.defaults.borderColor = '#1e2d4a';
 
     const cats = {};
     DATA.bora_licitaciones.forEach(r => {
-        const c = r.categoria
+        const c = (r.categoria || 'Sin categoría')
             .replace(/SUMINISTROS - |SERVICIOS - |LOCACIONES - |VENTAS Y OFRECIMIENTOS DEL ESTADO - /g, '');
         cats[c] = (cats[c] || 0) + 1;
     });
     const ck = Object.keys(cats).sort((a, b) => cats[b] - cats[a]);
-    const colors = ['#06b6d4','#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#14b8a6','#f97316','#84cc16','#a78bfa'];
+    const colors = ['#06b6d4','#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#14b8a6','#f97316','#84cc16'];
 
     if (grafico1) grafico1.destroy();
     grafico1 = new Chart(document.getElementById('grafico-categorias'), {
         type: 'bar',
-        data: { labels: ck, datasets: [{ data: ck.map(k => cats[k]), backgroundColor: colors, borderRadius: 5, borderSkipped: false }] },
+        data: { labels: ck.length ? ck : ['Sin datos'], datasets: [{ data: ck.length ? ck.map(k => cats[k]) : [0], backgroundColor: colors, borderRadius: 5, borderSkipped: false }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
             scales: { x: { grid: { color: '#1e2d4a' }, ticks: { font: { size: 9 }, maxRotation: 30 } }, y: { grid: { color: '#1e2d4a' }, ticks: { stepSize: 1 } } } }
     });
 
     const et = { 'Sin CUIT': 0, 'Adjudicado': 0, 'Cobró TGN': 0, 'Flujo Completo': 0 };
     DATA.flujo.forEach(r => {
-        if (r.alerta?.includes('FLUJO COMPLETO'))   et['Flujo Completo']++;
-        else if (r.cobro_en_tgn?.includes('SÍ'))    et['Cobró TGN']++;
-        else if (r.etapa?.includes('ADJUDICADO'))   et['Adjudicado']++;
-        else                                         et['Sin CUIT']++;
+        if (r.alerta && r.alerta.includes('FLUJO COMPLETO'))        et['Flujo Completo']++;
+        else if (r.cobro_en_tgn && r.cobro_en_tgn.includes('SÍ'))  et['Cobró TGN']++;
+        else if (r.etapa && r.etapa.includes('ADJUDICADO'))         et['Adjudicado']++;
+        else                                                         et['Sin CUIT']++;
     });
     if (grafico2) grafico2.destroy();
     grafico2 = new Chart(document.getElementById('grafico-etapas'), {
@@ -668,20 +597,31 @@ function renderCharts() {
     });
 }
 
-/* ─── CARGAR DATOS DESDE DISCO (vía API si hay xlsx guardados) ─── */
-async function cargarDatosIniciales() {
-    // Intentar cargar el último reporte del disco via el endpoint de status
+/* ─── CARGAR DATOS DESDE API ─────────────────────────────────── */
+async function cargarDatosIniciales(fecha = null) {
     try {
-        const resp = await fetch('/api/status');
+        const url = fecha ? `/api/licitaciones/datos?fecha=${fecha}` : '/api/licitaciones/datos';
+        const resp = await fetch(url);
         const data = await resp.json();
-        if (!data.reportes_en_disco && !data.cache_activo) {
+
+        if (data.sin_datos) {
             document.getElementById('aviso-sin-datos').style.display = 'flex';
+        } else {
+            document.getElementById('aviso-sin-datos').style.display = 'none';
+            DATA.flujo               = data.flujo               || [];
+            DATA.bora_licitaciones   = data.bora_licitaciones   || [];
+            DATA.bora_adjudicaciones = data.bora_adjudicaciones || [];
+            DATA.comprar             = data.comprar             || [];
+
+            if (data.fecha) {
+                document.getElementById('fecha-reporte').textContent =
+                    data.fecha.split('-').reverse().join('/');
+            }
         }
     } catch (e) {
-        // si falla la API mostramos el aviso
         document.getElementById('aviso-sin-datos').style.display = 'flex';
     }
-    // Renderizar con datos vacíos (se llenarán tras ejecutar)
+
     renderMetricas();
     renderFlujo(DATA.flujo);
     renderBora();
@@ -690,8 +630,8 @@ async function cargarDatosIniciales() {
     renderCharts();
 }
 
-/* ─── INIT ──────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', cargarDatosIniciales);
+/* ─── INIT ───────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => cargarDatosIniciales());
 </script>
 </body>
 </html>

@@ -351,7 +351,6 @@ def analizar_boletin(df, directorio_destino=None):
         "indice_fenomeno_corruptivo", "nivel_riesgo_teorico", "link",
     ]
     df_export = df[[c for c in cols if c in df.columns]]
-
     try:
         df_export.to_excel(path_excel, index=False, engine="openpyxl")
         print(f"✅ Reporte generado: {path_excel}")
@@ -365,7 +364,7 @@ def analizar_boletin(df, directorio_destino=None):
             print(f"❌ Error al guardar CSV: {e2}")
             path_excel = None
 
-        return df, path_excel, pd.DataFrame()
+    return df, path_excel, pd.DataFrame()
 
 
 # Alias para compatibilidad con test_auditoria.py
