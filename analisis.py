@@ -366,3 +366,5 @@ def analizar_boletin(df, directorio_destino=None):
             path_excel = None
 
     return df, path_excel, pd.DataFrame()
+    # Alias para compatibilidad con test_auditoria.py
+    REGLAS_CLASIFICACION = MATRIZ_TEORICA
