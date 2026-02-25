@@ -10,8 +10,9 @@ import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    import threading
+    import threading, time
     def correr_diario():
+        time.sleep(15)  # espera que Railway confirme que la app está up
         try:
             print("\n🚀 Iniciando ciclo diario automático...")
             from diario import (extraer_bora_licitaciones, extraer_bora_adjudicaciones,
