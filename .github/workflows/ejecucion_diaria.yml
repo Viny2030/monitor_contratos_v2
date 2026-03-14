@@ -1,9 +1,9 @@
-name: Monitor Diario Integrado BORA y Compras
+name: Monitor Diario Integrado BORA + Comprar + TGN
 
 on:
   schedule:
     - cron: '0 11 * * *'   # 08:00 Argentina (UTC-3)
-  workflow_dispatch:
+  workflow_dispatch:        # permite ejecución manual desde GitHub
 
 permissions:
   contents: write
@@ -13,33 +13,58 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Descargar código (Checkout)
+
+      # ── 1. Descargar código ──────────────────────────────────
+      - name: Checkout rama desarrollo
         uses: actions/checkout@v4
         with:
           ref: desarrollo
           fetch-depth: 0
 
-      - name: Configurar Python
+      # ── 2. Configurar Python ─────────────────────────────────
+      - name: Configurar Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Instalar librerías
+      # ── 3. Instalar dependencias ─────────────────────────────
+      - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install pandas requests beautifulsoup4 openpyxl lxml pdfminer.six
+          pip install -r requirements.txt
 
-      - name: Ejecutar Ciclo Integrado
+      # ── 4. Ciclo diario principal ────────────────────────────
+      - name: Ejecutar diario.py (BORA + Comprar + TGN)
         run: python diario.py
 
-      - name: Guardar Reporte y Sincronizar
+      # ── 5. Análisis de concentración (sistémico) ─────────────
+      - name: Ejecutar analisis_concentracion.py
+        run: python analisis_concentracion.py --exportar
+        continue-on-error: true   # no frena el flujo si falla
+
+      # ── 6. Guardar y sincronizar ─────────────────────────────
+      - name: Commit y push de reportes generados
         run: |
-          git config --global user.name 'Robot Monitor'
+          git config --global user.name  'Robot Monitor'
           git config --global user.email 'robot@noreply.github.com'
+
+          # Agregar carpetas de datos generadas
           git add data/
-          git diff --staged --quiet && echo "Sin cambios, nada que commitear" && exit 0
-          git commit -m "Reporte Integrado BORA-COMPRAR-TGN: $(date +'%Y-%m-%d')"
+          git add data/perfiles/ 2>/dev/null || true
+          git add data/analisis/ 2>/dev/null || true
+
+          # Si no hay cambios, salir sin error
+          git diff --staged --quiet \
+            && echo "Sin cambios nuevos — nada que commitear" \
+            && exit 0
+
+          git commit -m "Monitor diario $(date +'%Y-%m-%d') — BORA+Comprar+TGN+Concentración"
+
           git push origin HEAD:desarrollo
+
+      # ── 7. Merge a main ──────────────────────────────────────
+      - name: Merge desarrollo → main
+        run: |
           git checkout main
           git merge desarrollo --no-edit
           git push origin main
