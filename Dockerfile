@@ -12,4 +12,4 @@ COPY . .
 EXPOSE 8501
 
 CMD ["sh", "-c", "streamlit run dashboard_v2.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true"]
-
+# rebuild v2
