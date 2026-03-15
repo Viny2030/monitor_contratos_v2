@@ -22,6 +22,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Módulos propios
 from perfil_organismo    import cargar_historico as cargar_hist_org
@@ -42,38 +43,69 @@ from analisis_concentracion import (
 # CONFIGURACIÓN DE PÁGINA
 # ─────────────────────────────────────────
 st.set_page_config(
-    page_title="Monitor de Fenómenos Corruptivos",
+    page_title="Monitor de Fenomenos Corruptivos",
     page_icon="🏛️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+import plotly.io as pio
+pio.templates["indigo"] = go.layout.Template(
+    layout=go.Layout(
+        paper_bgcolor="rgba(245,243,255,0)",
+        plot_bgcolor="rgba(245,243,255,0)",
+        font=dict(color="#1e1b4b", family="Inter, sans-serif"),
+        colorway=["#7c3aed","#8b5cf6","#059669","#d97706","#dc2626","#0891b2","#a78bfa"],
+        xaxis=dict(gridcolor="#ddd6fe", linecolor="#c4b5fd", zerolinecolor="#ddd6fe"),
+        yaxis=dict(gridcolor="#ddd6fe", linecolor="#c4b5fd", zerolinecolor="#ddd6fe"),
+        legend=dict(bgcolor="#ffffff", bordercolor="#ddd6fe"),
+        hoverlabel=dict(bgcolor="#ffffff", bordercolor="#c4b5fd", font_color="#1e1b4b"),
+    )
+)
+pio.templates.default = "indigo"
+
 DATA_DIR = os.path.join(os.getcwd(), "data")
 
 # ─────────────────────────────────────────
 # ESTILOS
-# ─────────────────────────────────────────
+# ----------------------------------------
 st.markdown("""
 <style>
-    .metric-card {
-        background: #1e2330;
-        border-radius: 8px;
-        padding: 16px 20px;
-        border-left: 4px solid #4f8ef7;
-        margin-bottom: 8px;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    :root {
+        --bg-primary:#f5f3ff; --bg-card:#ffffff; --border:#ddd6fe;
+        --border-bright:#c4b5fd; --accent-main:#7c3aed; --accent-light:#8b5cf6;
+        --accent-pale:#ede9fe; --accent-red:#dc2626; --accent-amber:#d97706;
+        --accent-green:#059669; --text-primary:#1e1b4b; --text-secondary:#4c1d95;
+        --text-muted:#7c3aed; --shadow:0 2px 12px rgba(124,58,237,0.10);
     }
-    .metric-card.rojo  { border-left-color: #e05252; }
-    .metric-card.verde { border-left-color: #52c07a; }
-    .metric-card.naranja { border-left-color: #f0a500; }
-    .metric-label { font-size: 12px; color: #8899aa; margin-bottom: 4px; }
-    .metric-value { font-size: 26px; font-weight: 700; color: #ffffff; }
-    .metric-sub   { font-size: 12px; color: #8899aa; margin-top: 4px; }
-    .tag-rojo    { background:#e05252; color:#fff; padding:2px 8px; border-radius:4px; font-size:11px; }
-    .tag-naranja { background:#f0a500; color:#fff; padding:2px 8px; border-radius:4px; font-size:11px; }
-    .tag-verde   { background:#52c07a; color:#fff; padding:2px 8px; border-radius:4px; font-size:11px; }
-    .seccion-titulo { font-size:18px; font-weight:700; margin:20px 0 8px; }
-    .diferencial { background:#0d3349; border-left:4px solid #4f8ef7;
-                   padding:10px 14px; border-radius:6px; font-size:13px; margin:8px 0; }
+    html,body,[class*="css"]{font-family:'Inter',sans-serif!important;}
+    .stApp{background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 50%,#faf5ff 100%)!important;color:var(--text-primary)!important;}
+    section[data-testid="stSidebar"]{background:linear-gradient(180deg,#4c1d95 0%,#5b21b6 60%,#6d28d9 100%)!important;border-right:none!important;box-shadow:4px 0 20px rgba(124,58,237,0.25)!important;}
+    section[data-testid="stSidebar"] *{color:#ede9fe!important;}
+    section[data-testid="stSidebar"] hr{border-color:rgba(167,139,250,0.3)!important;}
+    section[data-testid="stSidebar"] button[kind="primary"]{background:linear-gradient(135deg,#f59e0b,#d97706)!important;color:#fff!important;border:none!important;font-weight:700!important;border-radius:10px!important;}
+    [data-testid="stMetric"]{background:var(--bg-card)!important;border:1px solid var(--border)!important;border-radius:12px!important;padding:16px 20px!important;box-shadow:var(--shadow)!important;}
+    [data-testid="stMetricLabel"]{color:var(--text-secondary)!important;font-size:11px!important;font-weight:600!important;text-transform:uppercase!important;letter-spacing:.06em!important;}
+    [data-testid="stMetricValue"]{color:var(--text-primary)!important;font-weight:800!important;}
+    [data-testid="stMetricDelta"]{color:var(--accent-green)!important;}
+    button[data-baseweb="tab"]{background:var(--bg-card)!important;color:var(--text-secondary)!important;border:1px solid var(--border)!important;border-radius:8px 8px 0 0!important;font-weight:500!important;}
+    button[data-baseweb="tab"][aria-selected="true"]{background:var(--accent-main)!important;color:#fff!important;border-color:var(--accent-main)!important;font-weight:700!important;}
+    [data-baseweb="select"]>div,[data-baseweb="input"]>div{background:var(--bg-card)!important;border-color:var(--border-bright)!important;color:var(--text-primary)!important;border-radius:8px!important;}
+    [data-testid="stDataFrame"]{border:1px solid var(--border)!important;border-radius:10px!important;box-shadow:var(--shadow)!important;}
+    hr{border-color:var(--border)!important;}
+    .metric-card{background:var(--bg-card);border-radius:12px;padding:16px 20px;border-left:4px solid var(--accent-main);margin-bottom:8px;border:1px solid var(--border);border-left:4px solid var(--accent-main);box-shadow:var(--shadow);}
+    .metric-card.rojo{border-left-color:var(--accent-red)!important;}
+    .metric-card.verde{border-left-color:var(--accent-green)!important;}
+    .metric-card.naranja{border-left-color:var(--accent-amber)!important;}
+    .metric-label{font-size:11px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+    .metric-value{font-size:26px;font-weight:800;color:var(--text-primary);}
+    .metric-sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+    .tag-rojo{background:#fee2e2;color:var(--accent-red);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+    .tag-naranja{background:#fef3c7;color:var(--accent-amber);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+    .tag-verde{background:#d1fae5;color:var(--accent-green);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+    .seccion-titulo{font-size:18px;font-weight:800;margin:20px 0 8px;color:var(--text-primary);}
+    .diferencial{background:var(--accent-pale);border-left:4px solid var(--accent-main);padding:10px 14px;border-radius:8px;font-size:13px;margin:8px 0;color:var(--text-primary);box-shadow:var(--shadow);}
 </style>
 """, unsafe_allow_html=True)
 
@@ -141,12 +173,16 @@ def col_de(df, opciones):
 # SIDEBAR
 # ─────────────────────────────────────────
 def sidebar():
-    st.sidebar.image(
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/24701-nature-natural-beauty.jpg/1px-1px.jpg",
-        width=1,
-    )
-    st.sidebar.title("🏛️ Monitor")
-    st.sidebar.caption("Fenómenos Corruptivos — Monteverde (2020)")
+    st.sidebar.markdown("""
+    <div style="padding:12px 4px 4px 4px;">
+      <div style="font-size:18px;font-weight:800;color:#e2e8f0;">
+        ⚖️ Monitor de Contratos
+      </div>
+      <div style="font-size:11px;color:#c4b5fd;margin-top:3px;">
+        Ph.D. Monteverde · Algoritmos contra la Corrupción
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.sidebar.divider()
 
     seccion = st.sidebar.radio(
@@ -155,15 +191,41 @@ def sidebar():
         label_visibility="collapsed",
     )
     st.sidebar.divider()
+    st.sidebar.markdown("""
+    <div style="font-size:12px;color:#c4b5fd;line-height:1.6;padding:0 4px;">
+      <b style="color:#e2e8f0;">Diferencial único:</b><br>
+      Muestra quién <b style="color:#a78bfa;">cobró</b> (TGN),
+      no solo quién ganó.<br><br>
+      <span style="color:#7c3aed;">Cruce BORA → Comprar → TGN</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.sidebar.markdown("<br>", unsafe_allow_html=True)
+
+    # Botón Apoyar nativo Streamlit
+    if st.sidebar.button("💛 Apoyar este proyecto", use_container_width=True, type="primary"):
+        st.session_state["mostrar_modal_apoyar"] = True
+
+    st.sidebar.divider()
+
+    # Botón descarga instructivo
+    import os
+    instructivo_path = os.path.join(os.getcwd(), "instructivo_monitor.docx")
+    if os.path.exists(instructivo_path):
+        with open(instructivo_path, "rb") as f:
+            st.sidebar.download_button(
+                label="📥 Descargar instructivo",
+                data=f,
+                file_name="instructivo_monitor.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True,
+            )
+
     st.sidebar.caption(
-        "**Diferencial único:**\n\n"
-        "Este sistema muestra quién **cobró** (TGN), "
-        "no solo quién ganó la licitación.\n\n"
-        "*Cruce BORA → Comprar → TGN*"
-    )
-    st.sidebar.caption(
-        "Ref: Monteverde, V.H. (2020). "
-        "*Journal of Financial Crime*, Vol. 28 No. 2."
+        "Ref: Monteverde, V. (2021). "
+        "*Great corruption – theory of corrupt phenomena*. "
+        "*Journal of Financial Crime*, Vol. 28 No. 2. "
+        "https://doi.org/10.1108/jfc-07-2019-0104"
     )
     return seccion
 
@@ -254,7 +316,7 @@ def seccion_contratos(df_flujo, df_tgn):
                 orientation="h",
                 title="Distribución por tipo de flujo",
                 color="cantidad",
-                color_continuous_scale="Reds",
+                color_continuous_scale=[[0,"#faf5ff"],[0.5,"#dc2626"],[1,"#991b1b"]],
             )
             fig.update_layout(showlegend=False, yaxis_title="", xaxis_title="Contratos")
             st.plotly_chart(fig, use_container_width=True)
@@ -340,7 +402,7 @@ def seccion_organismos(df_flujo):
             title="Top 15 organismos por monto adjudicado",
             labels={"monto_total": "Monto ARS", col_org: ""},
             color="monto_total",
-            color_continuous_scale="Blues",
+            color_continuous_scale=[[0,"#faf5ff"],[0.5,"#7c3aed"],[1,"#4c1d95"]],
         )
         fig.update_layout(showlegend=False)
         st.plotly_chart(fig, use_container_width=True)
@@ -353,7 +415,7 @@ def seccion_organismos(df_flujo):
             title="Top 15 por cantidad de adjudicaciones",
             labels={"adjudicaciones": "Adjudicaciones", col_org: ""},
             color="adjudicaciones",
-            color_continuous_scale="Oranges",
+            color_continuous_scale=[[0,"#faf5ff"],[0.5,"#d97706"],[1,"#92400e"]],
         )
         fig2.update_layout(showlegend=False)
         st.plotly_chart(fig2, use_container_width=True)
@@ -520,7 +582,7 @@ def seccion_proveedores(df_flujo, df_tgn):
                     title="Top 15 proveedores por monto cobrado en TGN",
                     labels={"x": "Monto cobrado ARS", "y": ""},
                     color="monto_tgn",
-                    color_continuous_scale="Greens",
+                    color_continuous_scale=[[0,"#faf5ff"],[0.5,"#059669"],[1,"#064e3b"]],
                 )
                 fig.update_layout(showlegend=False)
                 st.plotly_chart(fig, use_container_width=True)
@@ -556,7 +618,7 @@ def seccion_proveedores(df_flujo, df_tgn):
                 orientation="h",
                 title="Top 15 proveedores por score de riesgo promedio",
                 color="score_promedio",
-                color_continuous_scale="Reds",
+                color_continuous_scale=[[0,"#faf5ff"],[0.5,"#dc2626"],[1,"#991b1b"]],
                 range_color=[0, 10],
             )
             fig_r.update_layout(showlegend=False)
@@ -681,7 +743,7 @@ def seccion_monitor(df_flujo):
         "🔒 Proveedor Único",
         "⚡ Ráfagas",
         "📐 HHI",
-        "👻 Fantasmas",
+        "👻 Sin cobro TGN",
     ])
 
     with tab_frag:
@@ -742,7 +804,7 @@ def seccion_monitor(df_flujo):
                 orientation="h",
                 title="Top 20 organismos por índice HHI",
                 color="hhi",
-                color_continuous_scale="Reds",
+                color_continuous_scale=[[0,"#faf5ff"],[0.5,"#dc2626"],[1,"#991b1b"]],
                 range_color=[0, 10000],
             )
             fig_hhi.add_vline(x=2500, line_dash="dash", line_color="red",
@@ -754,23 +816,130 @@ def seccion_monitor(df_flujo):
             st.dataframe(df_hhi, use_container_width=True, hide_index=True)
 
     with tab_fantasmas:
-        st.subheader("👻 Proveedores fantasma")
-        st.caption("Adjudicados que no aparecen en TGN — ganaron pero no cobraron")
+        st.subheader("👻 Adjudicados sin cobro en TGN")
+        st.caption("Proveedores que ganaron licitaciones pero no registran cobro en TGN")
         df_fan = detectar_fantasmas(df_flujo, exportar_df=True)
         if df_fan.empty:
-            st.success("Todos los proveedores adjudicados aparecen en TGN")
+            st.success("Todos los proveedores adjudicados registran cobro en TGN")
         else:
-            st.warning(f"{len(df_fan)} proveedores sin registro de cobro en TGN")
+            st.warning(f"{len(df_fan)} adjudicados sin registro de cobro en TGN")
             st.dataframe(df_fan, use_container_width=True, hide_index=True)
+
+    # ── Fuentes de datos scrapeadas ──────────────────────────────
+    st.divider()
+    st.subheader("🌐 Fuentes de datos monitoreadas diariamente")
+    st.caption("El robot de scraping consulta estas fuentes cada día hábil de forma automática.")
+
+    fuentes = [
+        {
+            "icon": "📰",
+            "nombre": "Boletín Oficial de la República Argentina (BORA)",
+            "url": "https://www.boletinoficial.gob.ar",
+            "descripcion": "Sección Tercera — Avisos Oficiales. Se extraen las adjudicaciones publicadas en el día, incluyendo organismo, proveedor, monto y enlace al aviso original.",
+            "endpoints": [
+                "https://www.boletinoficial.gob.ar/seccion/tercera",
+                "https://www.boletinoficial.gob.ar/detalleAviso/tercera/{id}/{fecha}",
+                "https://www.boletinoficial.gob.ar/pdf/aviso/tercera/{id}/{fecha}",
+            ]
+        },
+        {
+            "icon": "🛒",
+            "nombre": "Comprar.gob.ar — Portal de Compras Públicas",
+            "url": "https://comprar.gob.ar",
+            "descripcion": "Portal oficial de contrataciones del Estado Nacional. Se consultan los procesos de compra recientes para cruzar con las adjudicaciones BORA y verificar el número de proceso licitatorio.",
+            "endpoints": [
+                "https://comprar.gob.ar/Compras.aspx?qs=W1HXHGHtH10=",
+            ]
+        },
+        {
+            "icon": "💰",
+            "nombre": "Presupuesto Abierto — Tesorería General de la Nación (TGN)",
+            "url": "https://www.presupuestoabierto.gob.ar",
+            "descripcion": "Portal de datos abiertos del Ministerio de Economía. Se descarga el crédito ejecutado por beneficiario (CUIT) para confirmar qué proveedores cobraron efectivamente del Estado.",
+            "endpoints": [
+                "https://www.presupuestoabierto.gob.ar/sici/datos-abiertos-download?file=credito-{año}.csv",
+                "https://www.presupuestoabierto.gob.ar/sici/rest-api/credito/ejecutado?anio={año}",
+            ]
+        },
+        {
+            "icon": "📊",
+            "nombre": "datos.gob.ar — Portal de Datos Abiertos",
+            "url": "https://datos.gob.ar",
+            "descripcion": "Portal nacional de datos abiertos. Se usan como fuente alternativa los datasets de crédito ejecutado de la Secretaría de Hacienda cuando la API de Presupuesto Abierto no responde.",
+            "endpoints": [
+                "https://datos.gob.ar/dataset/sspre-presupuesto-administracion-publica-nacional-{año}",
+            ]
+        },
+    ]
+
+    for f in fuentes:
+        with st.expander(f"{f['icon']}  **{f['nombre']}** — {f['url']}"):
+            st.markdown(f"**Descripción:** {f['descripcion']}")
+            st.markdown("**Endpoints consultados:**")
+            for ep in f["endpoints"]:
+                st.code(ep, language="text")
+            st.markdown(f"[🔗 Abrir sitio]({f['url']})")
 
 
 # ─────────────────────────────────────────
 # MAIN
 # ─────────────────────────────────────────
+@st.dialog("💛 Apoyar este proyecto", width="small")
+def modal_apoyar():
+    st.markdown("Completá tus datos y te enviamos la información para realizar tu donación.")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.text_input("Nombre", placeholder="Tu nombre", key="apoyar_nombre")
+    with col2:
+        st.text_input("Apellido", placeholder="Tu apellido", key="apoyar_apellido")
+    st.text_input("Email", placeholder="tu@email.com", key="apoyar_email")
+    origen = st.selectbox("¿Desde dónde donás?", ["— Seleccioná —", "Argentina", "Exterior"], key="apoyar_origen")
+    if st.button("Ver datos para transferir →", type="primary", use_container_width=True):
+        if origen == "Argentina":
+            st.markdown("### 🇦🇷 Datos para transferencia desde Argentina")
+            st.markdown("Usá alguno de estos alias desde tu homebanking o billetera virtual:")
+            st.divider()
+            st.markdown("#### 💰 En Pesos")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.caption("ALIAS"); st.code("ALGORIT.MONTE.PESOS")
+                st.caption("TITULAR"); st.code("Vicente Humberto Monteverde")
+            with c2:
+                st.caption("TIPO"); st.code("Caja de Ahorro · Pesos")
+            st.markdown("#### 💵 En Dólares")
+            c3, c4 = st.columns(2)
+            with c3:
+                st.caption("ALIAS"); st.code("ALGO.MONTE.DOLARES")
+                st.caption("TITULAR"); st.code("Vicente Humberto Monteverde")
+            with c4:
+                st.caption("TIPO"); st.code("Caja de Ahorro · Dólares")
+            st.success("¡Muchas gracias por apoyar la transparencia! 🙏")
+        elif origen == "Exterior":
+            st.markdown("### 🌐 Wire Transfer — International donation")
+            st.markdown("Please use the following wire transfer details:")
+            st.divider()
+            for label, val in [
+                ("BANK",           "Banco Santander Montevideo"),
+                ("BENEFICIARY",    "Vicente Humberto Monteverde"),
+                ("ADDRESS",        "Av. Directorio 3024-PB-DTO 04"),
+                ("ACCOUNT TYPE",   "Savings Account · USD"),
+                ("ACCOUNT NUMBER", "005200183500"),
+                ("SWIFT / BIC",    "BSCHUYMM"),
+            ]:
+                st.caption(label); st.code(val)
+            st.success("Thank you for supporting transparency! 🙏")
+        else:
+            st.warning("Seleccioná desde dónde donás")
+
 def main():
     df_flujo, df_adj, df_tgn, n_archivos = cargar_datos()
 
     seccion = sidebar()
+
+    # Mostrar modal si fue activado
+    if st.session_state.get("mostrar_modal_apoyar"):
+        st.session_state["mostrar_modal_apoyar"] = False
+        modal_apoyar()
 
     if df_flujo.empty and df_adj.empty:
         st.error(
