@@ -148,7 +148,7 @@ def preparar_df(df):
     df["_tgn"]      = df[col_tgn].apply(parsear_monto)   if col_tgn   else 0.0
     df["_org_norm"] = df[col_org].apply(normalizar)       if col_org   else ""
     df["_cuit"]     = df[col_cuit].astype(str).str.strip() if col_cuit else ""
-    df["_fecha"]    = df[col_fecha]                        if col_fecha else pd.NaT
+    df["_fecha"]    = pd.to_datetime(df[col_fecha], errors="coerce") if col_fecha else pd.NaT
 
     return df, col_org, col_cuit, col_fecha
 
