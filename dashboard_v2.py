@@ -64,7 +64,8 @@ pio.templates["indigo"] = go.layout.Template(
 )
 pio.templates.default = "indigo"
 
-DATA_DIR = os.path.join(os.getcwd(), "data")
+# Path compatible con local y Railway (/app es el WORKDIR del Dockerfile)
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 # ─────────────────────────────────────────
 # ESTILOS
