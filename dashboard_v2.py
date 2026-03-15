@@ -228,6 +228,30 @@ def sidebar():
         "*Journal of Financial Crime*, Vol. 28 No. 2. "
         "https://doi.org/10.1108/jfc-07-2019-0104"
     )
+
+    st.sidebar.divider()
+    st.sidebar.markdown("""
+    <div style="padding:8px 4px;">
+      <div style="font-size:12px;font-weight:700;color:#e2e8f0;margin-bottom:8px;">👤 Sobre el Autor</div>
+      <img src="https://raw.githubusercontent.com/Viny2030/monitor_contratos_v2/feature/base-datos/static/foto_monteverde.jpg"
+           style="width:64px;height:64px;border-radius:50%;border:2px solid #7c3aed;display:block;margin:0 auto 8px auto;">
+      <div style="font-size:11px;font-weight:700;color:#c4b5fd;text-align:center;">Ph.D. Vicente H. Monteverde</div>
+      <div style="font-size:10px;color:#94a3b8;text-align:center;margin-top:4px;line-height:1.5;">
+        Investigador en economía política y fenómenos de corrupción.
+      </div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;">
+        <a href="mailto:vhmonte@retina.ar"
+           style="display:block;text-align:center;font-size:10px;color:#a78bfa;
+                  background:rgba(124,58,237,0.15);border-radius:6px;padding:4px 8px;
+                  text-decoration:none;">✉️ vhmonte@retina.ar</a>
+        <a href="mailto:viny01958@gmail.com"
+           style="display:block;text-align:center;font-size:10px;color:#a78bfa;
+                  background:rgba(124,58,237,0.15);border-radius:6px;padding:4px 8px;
+                  text-decoration:none;">✉️ viny01958@gmail.com</a>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     return seccion
 
 
