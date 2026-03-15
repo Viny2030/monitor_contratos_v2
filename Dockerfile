@@ -9,8 +9,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /app/data
-
 EXPOSE 8501
 
 CMD ["sh", "-c", "streamlit run dashboard_v2.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true"]
