@@ -705,8 +705,3 @@ copies of the Software...
 **Mantenedor:** [Tu Nombre/Organización]
 
 ---
-
-<p align="center">
-  <strong>Monitor de Fenómenos Corruptivos</strong><br>
-  <em>Transparencia basada en evidencia científica</em>
-</p>
