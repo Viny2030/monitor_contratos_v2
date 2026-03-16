@@ -36,6 +36,9 @@ python-dateutil>=2.8.0       # parseo robusto de fechas
 certifi>=2024.0.0            # certificados SSL
 charset-normalizer>=3.0.0
 
+# ── Base de datos ─────────────────────────────────────────────
+psycopg2-binary>=2.9.0       # conexión PostgreSQL (Railway)
+
 # ── Opcionales (para análisis avanzado futuro) ────────────────
 # scikit-learn>=1.3.0        # clustering de organismos/proveedores
 # networkx>=3.0              # grafos de relaciones CUIT-organismo
