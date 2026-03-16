@@ -15,8 +15,105 @@ Correr:
 import os
 import re
 import glob
+import logging
 import unicodedata
 from datetime import datetime
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+logger = logging.getLogger(__name__)
+
+# ─── BASE DE DATOS ────────────────────────────────────────────────────────────
+_DATABASE_URL = os.getenv("DATABASE_URL", "")
+
+def _get_conn():
+    url = _DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    return psycopg2.connect(url, cursor_factory=RealDictCursor)
+
+def _init_db():
+    """Crea las tablas si no existen. Se llama una vez al iniciar."""
+    if not _DATABASE_URL:
+        return
+    try:
+        conn = _get_conn()
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS donaciones_consultas (
+                    id         SERIAL PRIMARY KEY,
+                    nombre     VARCHAR(100),
+                    apellido   VARCHAR(100),
+                    email      VARCHAR(254),
+                    pais       VARCHAR(30),
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                );
+                CREATE TABLE IF NOT EXISTS estadisticas_acceso (
+                    id         SERIAL PRIMARY KEY,
+                    seccion    VARCHAR(100) NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_ea_ts ON estadisticas_acceso (created_at);
+                CREATE INDEX IF NOT EXISTS idx_dc_ts ON donaciones_consultas (created_at);
+            """)
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.warning(f"DB init error: {e}")
+
+def _registrar_visita(seccion: str):
+    """Registra que el usuario navegó a una sección."""
+    if not _DATABASE_URL:
+        return
+    try:
+        conn = _get_conn()
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO estadisticas_acceso (seccion) VALUES (%s)", (seccion,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.debug(f"tracking error: {e}")
+
+def _registrar_donacion(nombre: str, apellido: str, email: str, pais: str):
+    """Registra una consulta de donación."""
+    if not _DATABASE_URL:
+        return None
+    try:
+        conn = _get_conn()
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO donaciones_consultas (nombre, apellido, email, pais) VALUES (%s,%s,%s,%s) RETURNING id",
+                (nombre.strip(), apellido.strip(), email.strip(), pais)
+            )
+            row = cur.fetchone()
+        conn.commit()
+        conn.close()
+        return row["id"]
+    except Exception as e:
+        logger.warning(f"donacion registro error: {e}")
+        return None
+
+def _get_stats():
+    """Devuelve estadísticas para el panel admin."""
+    if not _DATABASE_URL:
+        return None
+    try:
+        conn = _get_conn()
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) AS total FROM estadisticas_acceso;")
+            total = cur.fetchone()["total"]
+            cur.execute("SELECT seccion, COUNT(*) AS v FROM estadisticas_acceso GROUP BY seccion ORDER BY v DESC;")
+            por_seccion = cur.fetchall()
+            cur.execute("SELECT DATE(created_at AT TIME ZONE 'America/Argentina/Buenos_Aires') AS dia, COUNT(*) AS v FROM estadisticas_acceso GROUP BY dia ORDER BY dia DESC LIMIT 14;")
+            por_dia = cur.fetchall()
+            cur.execute("SELECT id, nombre, apellido, email, pais, created_at FROM donaciones_consultas ORDER BY created_at DESC LIMIT 50;")
+            donaciones = cur.fetchall()
+        conn.close()
+        return {"total": total, "por_seccion": list(por_seccion), "por_dia": list(por_dia), "donaciones": list(donaciones)}
+    except Exception as e:
+        return {"error": str(e)}
+
+# Inicializar DB al importar el módulo
+_init_db()
 
 import pandas as pd
 import plotly.express as px
@@ -188,7 +285,7 @@ def sidebar():
 
     seccion = st.sidebar.radio(
         "Sección",
-        ["📄 Contratos", "🏛️ Organismos", "🏢 Proveedores", "🔍 Monitor"],
+        ["📄 Contratos", "🏛️ Organismos", "🏢 Proveedores", "🔍 Monitor", "📊 Estadísticas"],
         label_visibility="collapsed",
     )
     st.sidebar.divider()
@@ -251,6 +348,11 @@ def sidebar():
       </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Registrar visita a la sección (solo cuando cambia)
+    if st.session_state.get("_ultima_seccion") != seccion:
+        st.session_state["_ultima_seccion"] = seccion
+        _registrar_visita(seccion)
 
     return seccion
 
@@ -920,6 +1022,11 @@ def modal_apoyar():
     st.text_input("Email", placeholder="tu@email.com", key="apoyar_email")
     origen = st.selectbox("¿Desde dónde donás?", ["— Seleccioná —", "Argentina", "Exterior"], key="apoyar_origen")
     if st.button("Ver datos para transferir →", type="primary", use_container_width=True):
+        nombre   = st.session_state.get("apoyar_nombre", "").strip()
+        apellido = st.session_state.get("apoyar_apellido", "").strip()
+        email    = st.session_state.get("apoyar_email", "").strip()
+        if nombre and apellido and email and origen != "— Seleccioná —":
+            _registrar_donacion(nombre, apellido, email, origen)
         if origen == "Argentina":
             st.markdown("### 🇦🇷 Datos para transferencia desde Argentina")
             st.markdown("Usá alguno de estos alias desde tu homebanking o billetera virtual:")
@@ -956,6 +1063,68 @@ def modal_apoyar():
         else:
             st.warning("Seleccioná desde dónde donás")
 
+def _seccion_estadisticas():
+    """Panel de estadísticas — protegido por clave admin."""
+    st.title("📊 Estadísticas del Sistema")
+
+    ADMIN_KEY = os.getenv("ADMIN_KEY", "monitor2026")
+    clave = st.text_input("🔑 Clave de acceso", type="password", placeholder="Ingresá la clave admin")
+
+    if not clave:
+        st.info("Ingresá la clave para ver las estadísticas.")
+        return
+    if clave != ADMIN_KEY:
+        st.error("❌ Clave incorrecta.")
+        return
+
+    stats = _get_stats()
+    if stats is None:
+        st.warning("⚠️ DATABASE_URL no configurada — estadísticas no disponibles.")
+        return
+    if "error" in stats:
+        st.error(f"Error DB: {stats['error']}")
+        return
+
+    # ── Métricas ──────────────────────────────────────────────
+    col1, col2, col3 = st.columns(3)
+    col1.metric("👁️ Visitas totales",        stats["total"])
+    col2.metric("🗂️ Secciones distintas",    len(stats["por_seccion"]))
+    col3.metric("💛 Consultas donación",      len(stats["donaciones"]))
+
+    st.divider()
+
+    # ── Visitas por día ───────────────────────────────────────
+    if stats["por_dia"]:
+        st.subheader("📅 Visitas por día (últimos 14 días)")
+        import pandas as pd
+        df_dia = pd.DataFrame(stats["por_dia"])
+        df_dia.columns = ["Día", "Visitas"]
+        import plotly.express as px
+        fig = px.bar(df_dia, x="Día", y="Visitas", color_discrete_sequence=["#a78bfa"])
+        fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                          font_color="#e2e8f0", xaxis_title="", yaxis_title="Visitas")
+        st.plotly_chart(fig, use_container_width=True)
+
+    # ── Visitas por sección ───────────────────────────────────
+    if stats["por_seccion"]:
+        st.subheader("🗂️ Visitas por sección")
+        df_sec = pd.DataFrame(stats["por_seccion"])
+        df_sec.columns = ["Sección", "Visitas"]
+        st.dataframe(df_sec, use_container_width=True, hide_index=True)
+
+    st.divider()
+
+    # ── Consultas de donación ─────────────────────────────────
+    st.subheader("💛 Consultas de Donación")
+    if stats["donaciones"]:
+        df_don = pd.DataFrame(stats["donaciones"])
+        df_don = df_don[["created_at", "nombre", "apellido", "email", "pais"]]
+        df_don.columns = ["Fecha", "Nombre", "Apellido", "Email", "País"]
+        st.dataframe(df_don, use_container_width=True, hide_index=True)
+    else:
+        st.info("Aún no hay consultas de donación registradas.")
+
+
 def main():
     df_flujo, df_adj, df_tgn, n_archivos = cargar_datos()
 
@@ -988,6 +1157,8 @@ def main():
         seccion_proveedores(df_flujo, df_tgn)
     elif seccion == "🔍 Monitor":
         seccion_monitor(df_flujo)
+    elif seccion == "📊 Estadísticas":
+        _seccion_estadisticas()
 
 
 if __name__ == "__main__":
