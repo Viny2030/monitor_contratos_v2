@@ -302,110 +302,75 @@ def extraer_comprar():
 # primaria y API año anterior como fallback
 # ─────────────────────────────────────────
 def extraer_pagos_tgn():
+    """
+    Extrae pagos TGN usando la nueva API v1 de Presupuesto Abierto.
+    Token configurado como variable de entorno TGN_TOKEN.
+    Cruce por organismo/unidad_ejecutora (la nueva API no expone CUIT beneficiario).
+    """
     anio = datetime.now().year
-    print("\n💰 Extrayendo Pagos TGN (Presupuesto Abierto)...")
+    print("
+💰 Extrayendo Pagos TGN (Presupuesto Abierto API v1)...")
 
-    # ── Fuente 1: CSVs públicos datos.gob.ar ─────────────────
-    urls_csv = [
-        f"https://datos.gob.ar/dataset/sspre-presupuesto-administracion-publica-nacional-{anio}/archivo/sspre_credito-ejecutado-{anio}.csv",
-        f"https://datos.gob.ar/dataset/sspre-presupuesto-administracion-publica-nacional-{anio-1}/archivo/sspre_credito-ejecutado-{anio-1}.csv",
-        f"https://www.presupuestoabierto.gob.ar/sici/datos-abiertos-download?file=credito-{anio}.csv",
-        f"https://www.presupuestoabierto.gob.ar/sici/datos-abiertos-download?file=credito-{anio-1}.csv",
-    ]
+    token = os.environ.get("TGN_TOKEN", "707cb8c8-83e6-4c4d-a202-3e49c14eda89")
 
-    for url in urls_csv:
-        try:
-            print(f"  🔄 Probando CSV: {url[:80]}...")
-            r = requests.get(url, headers=HEADERS, timeout=30, verify=False)
-            if r.status_code != 200:
-                print(f"  ⚠️ HTTP {r.status_code} — siguiente fuente")
-                continue
+    url = "https://www.presupuestoabierto.gob.ar/api/v1/credito"
+    headers_api = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Accept": "text/csv",
+    }
+    body = {
+        "columns": [
+            "ejercicio_presupuestario",
+            "jurisdiccion_desc",
+            "entidad_desc",
+            "unidad_ejecutora_desc",
+            "credito_pagado",
+            "credito_devengado",
+        ]
+    }
 
-            df = pd.read_csv(
-                io.StringIO(r.text),
-                sep=",",
-                encoding="utf-8",
-                on_bad_lines="skip",
-                nrows=500,
-            )
+    try:
+        r = requests.post(url, headers=headers_api, json=body, timeout=60, verify=False)
+        r.raise_for_status()
 
-            # Detectar columnas automáticamente
-            col_cuit   = next((c for c in df.columns if "cuit" in c.lower()), None)
-            col_nombre = next((c for c in df.columns if any(
-                k in c.lower() for k in ["beneficiario", "razon", "nombre", "desc"]
-            )), None)
-            col_monto  = next((c for c in df.columns if any(
-                k in c.lower() for k in ["pagado", "monto", "devengado", "ejecutado"]
-            )), None)
+        df = pd.read_csv(io.StringIO(r.text), sep=",", on_bad_lines="skip")
 
-            if not col_cuit and not col_nombre:
-                print(f"  ⚠️ CSV sin columnas reconocibles: {list(df.columns)[:6]}")
-                continue
+        # Filtrar año actual
+        if "ejercicio_presupuestario" in df.columns:
+            df = df[df["ejercicio_presupuestario"] == anio].copy()
 
-            datos = []
-            for _, row in df.head(200).iterrows():
-                cuit   = str(row.get(col_cuit, "")).strip()   if col_cuit   else ""
-                nombre = str(row.get(col_nombre, "")).strip() if col_nombre else ""
-                monto  = row.get(col_monto, 0)                if col_monto  else 0
-                if nombre and nombre not in ("nan", "None", ""):
-                    datos.append({
-                        "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
-                        "anio":             anio,
-                        "cuit":             cuit,
-                        "beneficiario":     nombre,
-                        "monto_pagado":     monto,
-                        "fuente":           f"Presupuesto Abierto TGN CSV {anio}",
-                    })
+        if df.empty:
+            print(f"  ⚠️ Sin datos para {anio} en TGN")
+            return pd.DataFrame()
 
-            if datos:
-                print(f"  ✅ {len(datos)} beneficiarios extraídos (CSV)")
-                return pd.DataFrame(datos)
+        # Normalizar nombre organismo para cruce con BORA
+        df["organismo_norm"] = (
+            df["entidad_desc"].fillna("").str.upper().str.strip()
+            + " " +
+            df["unidad_ejecutora_desc"].fillna("").str.upper().str.strip()
+        ).str.strip()
 
-        except Exception as e:
-            print(f"  ⚠️ CSV falló ({url[:60]}): {e}")
+        df_out = pd.DataFrame({
+            "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
+            "anio":             anio,
+            "cuit":             "",
+            "beneficiario":     df["entidad_desc"].fillna(""),
+            "unidad_ejecutora": df["unidad_ejecutora_desc"].fillna(""),
+            "jurisdiccion":     df["jurisdiccion_desc"].fillna(""),
+            "monto_pagado":     pd.to_numeric(df["credito_pagado"], errors="coerce").fillna(0),
+            "monto_devengado":  pd.to_numeric(df.get("credito_devengado", 0), errors="coerce").fillna(0),
+            "organismo_norm":   df["organismo_norm"],
+            "fuente":           f"Presupuesto Abierto TGN API v1 {anio}",
+        })
 
-    # ── Fuente 2: API REST año anterior como referencia ───────
-    print(f"  🔄 Intentando API año anterior ({anio-1}) como referencia...")
-    urls_api = [
-        f"https://www.presupuestoabierto.gob.ar/sici/rest-api/credito/ejecutado?anio={anio-1}&categoria=beneficiario&formato=json&limit=100",
-        f"https://www.presupuestoabierto.gob.ar/sici/rest-api/credito/ejecutado?anio={anio-1}&limit=100",
-    ]
+        print(f"  ✅ {len(df_out)} registros TGN extraídos (API v1)")
+        return df_out
 
-    for url in urls_api:
-        try:
-            response = get_con_reintentos(url, intentos=2, timeout=30, espera=5)
-            data  = response.json()
-            items = (
-                data if isinstance(data, list)
-                else data.get("data", data.get("items", data.get("results", [])))
-            )
-            if not items:
-                continue
-
-            datos = []
-            for item in items[:100]:
-                cuit   = str(item.get("cuit", item.get("beneficiario_cuit", ""))).strip()
-                nombre = str(item.get("desc_beneficiario", item.get("beneficiario", item.get("nombre", "")))).strip()
-                monto  = item.get("monto_pagado", item.get("pagado", item.get("monto", 0)))
-                if nombre and nombre not in ("nan", "None", ""):
-                    datos.append({
-                        "fecha_extraccion": datetime.now().strftime("%Y-%m-%d"),
-                        "anio":             anio - 1,
-                        "cuit":             cuit,
-                        "beneficiario":     nombre,
-                        "monto_pagado":     monto,
-                        "fuente":           f"Presupuesto Abierto TGN API {anio-1} (referencia)",
-                    })
-
-            if datos:
-                print(f"  ⚠️ Usando referencia {anio-1} ({len(datos)} beneficiarios)")
-                return pd.DataFrame(datos)
-
-        except Exception as e:
-            print(f"  ⚠️ API falló: {e}")
-
-    print("  ⚠️ TGN no disponible, se omite del cruce")
-    return pd.DataFrame()
+    except Exception as e:
+        print(f"  ❌ TGN API v1 falló: {e}")
+        print("  ⚠️ TGN no disponible, se omite del cruce")
+        return pd.DataFrame()
 
 # ─────────────────────────────────────────
 # CRUCE: Licitaciones → Adjudicadas → Pagos
@@ -523,25 +488,23 @@ def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_
     # ── Excel 1: Reporte operativo completo ──
     archivo1 = os.path.join(carpeta, f"reporte_{hoy}.xlsx")
     with pd.ExcelWriter(archivo1, engine="openpyxl") as writer:
+        hojas_e1 = 0
         if not df_cruce_con_riesgo.empty:
             df_cruce_con_riesgo.to_excel(writer, sheet_name="🚨 Flujo Completo", index=False)
         elif not df_cruce.empty:
             df_cruce.to_excel(writer, sheet_name="🚨 Flujo Completo", index=False)
         if not df_adjudicaciones.empty:
             df_adjudicaciones.to_excel(writer, sheet_name="🏆 Adjudicaciones", index=False)
+            hojas_e1 += 1
         if not df_licitaciones.empty:
             df_licitaciones.to_excel(writer, sheet_name="📰 BORA Licitaciones", index=False)
+            hojas_e1 += 1
         if not df_comprar.empty:
             df_comprar.to_excel(writer, sheet_name="🛒 Comprar", index=False)
+            hojas_e1 += 1
         if not df_tgn.empty:
             df_tgn.to_excel(writer, sheet_name="💰 TGN", index=False)
-        hojas_e1 = sum([
-            not df_cruce_con_riesgo.empty or not df_cruce.empty,
-            not df_adjudicaciones.empty,
-            not df_licitaciones.empty,
-            not df_comprar.empty,
-            not df_tgn.empty,
-        ])
+            hojas_e1 += 1
         if not df_cruce_con_riesgo.empty:
             cols_riesgo = [
                 "fecha", "organismo_contratante", "tipo_proceso_bora",
@@ -556,6 +519,7 @@ def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_
             )
             df_alertas.to_excel(writer, sheet_name="⚠️ Riesgo Licitatorio", index=False)
             hojas_e1 += 1
+        # ── Guardia: openpyxl requiere al menos una hoja visible ──
         if hojas_e1 == 0:
             pd.DataFrame({
                 "estado":  ["Sin datos — todos los servicios externos fallaron"],
@@ -595,6 +559,7 @@ def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_
                 df_alto_riesgo = df_alto_riesgo.sort_values("indice_riesgo_licit", ascending=False)
                 df_alto_riesgo.to_excel(writer, sheet_name="⚠️ Alertas Riesgo", index=False)
 
+        # ── Guardia Excel 2 ──
         hojas_e2 = sum([
             not df_adjudicaciones.empty and df_adjudicaciones["cuit_proveedor"].astype(bool).any(),
             not df_flujo.empty,
@@ -616,13 +581,12 @@ def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_
 if __name__ == "__main__":
     # ── Guardia fin de semana ──────────────────────────────────────────────────
     hoy = datetime.now()
-    if hoy.weekday() >= 5:  # 5=sábado, 6=domingo
+    if hoy.weekday() >= 5:
         dia = "sábado" if hoy.weekday() == 5 else "domingo"
         print(f"⏭️  Hoy es {dia} {hoy.strftime('%Y-%m-%d')} — los organismos no publican en fin de semana.")
         print("   Script finalizado sin ejecutar scrapers.")
         exit(0)
     # ──────────────────────────────────────────────────────────────────────────
-
     print("🚀 Ciclo Integrado: BORA + Comprar + TGN")
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
 
