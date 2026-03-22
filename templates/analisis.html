@@ -88,6 +88,21 @@
     </header>
 
     <main>
+        <!-- BANNER FIN DE SEMANA -->
+        <div id="banner-finde" style="display:none; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.4); border-radius:10px; padding:16px 20px; margin-bottom:24px;">
+            <p style="margin:0; font-size:0.88rem; color:#f59e0b;">
+                📅 <strong>Hoy es fin de semana.</strong> Los organismos del Estado no publican los sábados ni domingos —
+                el scraper no genera datos nuevos. Te recomendamos usar esta herramienta de <strong>lunes a viernes</strong>.
+                Podés ver los datos del último día hábil seleccionando una fecha anterior.
+            </p>
+        </div>
+        <script>
+            const diaSemana = new Date().getDay();
+            if (diaSemana === 0 || diaSemana === 6) {
+                document.getElementById('banner-finde').style.display = 'block';
+            }
+        </script>
+
         <!-- SELECTOR DE DÍA -->
         <section class="selector-dia">
             <h3>📅 Seleccionar Día de Análisis</h3>
@@ -118,7 +133,7 @@
             <div id="spinner" class="spinner" style="display:none;">
                 <div class="loader"></div>
                 <p>Ejecutando Paso 1-2-3 (Scraping BORA + Comprar + TGN + Cruce)...</p>
-                <p class="tiempo-estimado">Tiempo estimado: 30–90 segundos</p>
+                <p class="tiempo-estimado">Tiempo estimado: 30–180 segundos</p>
             </div>
 
             <div id="resultado" style="display:none;"></div>
@@ -205,7 +220,7 @@
 
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 120000);
+                const timeoutId = setTimeout(() => controller.abort(), 180000);
 
                 const resp = await fetch(`/api/licitaciones/ejecutar?fecha=${diaSeleccionado}`, {
                     method: 'POST',
@@ -267,7 +282,7 @@
             } catch (e) {
                 let mensaje = e.message;
                 if (e.name === 'AbortError') {
-                    mensaje = 'Tiempo de espera agotado (2 minutos). El scraping tardó demasiado.';
+                    mensaje = 'Tiempo de espera agotado (3 minutos). El scraping tardó demasiado.';
                 }
                 resultado.innerHTML = `
                     <div class="error">
