@@ -33,31 +33,73 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ── 4. Ciclo diario principal ────────────────────────────
+      # ── 4. Capturar fecha del run ────────────────────────────
+      - name: Capturar fecha
+        id: fecha
+        run: echo "fecha=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      # ── 5. Ciclo diario principal ────────────────────────────
       - name: Ejecutar diario.py (BORA + Comprar + TGN)
         run: python diario.py
+        env:
+          TGN_TOKEN: ${{ secrets.TGN_TOKEN }}
 
-      # ── 5. Análisis de concentración (sistémico) ─────────────
+      # ── 6. Análisis de concentración (sistémico) ─────────────
       - name: Ejecutar analisis_concentracion.py
         run: python analisis_concentracion.py --exportar
-        continue-on-error: true   # no frena el flujo si falla
+        continue-on-error: true
 
-      # ── 6. Guardar y sincronizar ─────────────────────────────
+      # ── 7. Guardar y sincronizar ─────────────────────────────
       - name: Commit y push de reportes generados
         run: |
           git config --global user.name  'Robot Monitor'
           git config --global user.email 'robot@noreply.github.com'
-
-          # Agregar carpetas de datos generadas
           git add data/
           git add data/perfiles/ 2>/dev/null || true
           git add data/analisis/ 2>/dev/null || true
-
-          # Si no hay cambios, salir sin error
           git diff --staged --quiet \
             && echo "Sin cambios nuevos — nada que commitear" \
             && exit 0
-
           git commit -m "Monitor diario $(date +'%Y-%m-%d') — BORA+Comprar+TGN+Concentración"
-
           git push origin HEAD:feature/base-datos
+
+      # ── 8. Notificación de éxito ─────────────────────────────
+      - name: Notificar éxito
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USER }}
+          password: ${{ secrets.MAIL_PASS }}
+          to: ${{ secrets.MAIL_TO }}
+          from: Monitor BORA <${{ secrets.MAIL_USER }}>
+          subject: "✅ Monitor diario OK — ${{ steps.fecha.outputs.fecha }}"
+          body: |
+            El ciclo diario BORA + Comprar + TGN se ejecutó correctamente.
+
+            🔗 Ver run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      # ── 9. Notificación de fallo ─────────────────────────────
+      - name: Notificar fallo
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USER }}
+          password: ${{ secrets.MAIL_PASS }}
+          to: ${{ secrets.MAIL_TO }}
+          from: Monitor BORA <${{ secrets.MAIL_USER }}>
+          subject: "❌ Monitor diario FALLÓ — ${{ steps.fecha.outputs.fecha }}"
+          body: |
+            ⚠️ El ciclo diario falló y requiere revisión.
+
+            🔗 Ver logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Causas comunes:
+            - BORA / Comprar / TGN no respondieron
+            - Error en el código de scraping
+            - Problema de autenticación en el push
