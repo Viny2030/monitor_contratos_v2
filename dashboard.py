@@ -118,7 +118,9 @@ if not os.path.exists(DATA_DIR):
 if pagina == "📖 Instructivo de Uso":
     st.title("📖 Instructivo de Uso del Dashboard")
     st.markdown("### Guía completa para utilizar el Monitor de Fenómenos Corruptivos")
-
+    st.warning("""
+⚠️ **Nota:** Esta herramienta es de carácter experimental y académico. Los datos provienen de fuentes públicas oficiales del Estado argentino. Los resultados son indicadores algorítmicos de riesgo — no implican juicio de valor, acusación ni determinación de responsabilidad sobre ninguna empresa, organismo o persona. El objetivo es promover la transparencia y el debate informado sobre el gasto público.
+""")
     st.divider()
 
     col_inst1, col_inst2 = st.columns([2, 1])
