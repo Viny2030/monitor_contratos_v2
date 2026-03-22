@@ -1163,6 +1163,14 @@ def main():
         f"Actualizado: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
     )
 
+    st.warning(
+        "⚠️ **Nota:** Esta herramienta es de carácter experimental y académico. "
+        "Los datos provienen de fuentes públicas oficiales del Estado argentino. "
+        "Los resultados son indicadores algorítmicos de riesgo — no implican juicio de valor, "
+        "acusación ni determinación de responsabilidad sobre ninguna empresa, organismo o persona. "
+        "El objetivo es promover la transparencia y el debate informado sobre el gasto público."
+    )
+
     if seccion == "📄 Contratos":
         seccion_contratos(df_flujo, df_tgn)
     elif seccion == "🏛️ Organismos":
