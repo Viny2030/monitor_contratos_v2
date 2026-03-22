@@ -308,8 +308,7 @@ def extraer_pagos_tgn():
     Cruce por organismo/unidad_ejecutora (la nueva API no expone CUIT beneficiario).
     """
     anio = datetime.now().year
-    print("
-💰 Extrayendo Pagos TGN (Presupuesto Abierto API v1)...")
+    print("💰 Extrayendo Pagos TGN (Presupuesto Abierto API v1)...")
 
     token = os.environ.get("TGN_TOKEN", "707cb8c8-83e6-4c4d-a202-3e49c14eda89")
 
