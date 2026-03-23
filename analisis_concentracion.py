@@ -580,6 +580,30 @@ def exportar_excel(df_frag, df_unico, df_rafaga, df_hhi, df_fantasmas):
 # ENTRY POINT
 # ─────────────────────────────────────────
 if __name__ == "__main__":
+    # ── Guardia fin de semana y feriados argentinos ───────────────────────────
+    hoy = datetime.now()
+
+    try:
+        import holidays
+        feriados_ar = holidays.Argentina(years=hoy.year)
+        es_feriado = hoy.date() in feriados_ar
+        nombre_feriado = feriados_ar.get(hoy.date(), "")
+    except ImportError:
+        es_feriado = False
+        nombre_feriado = ""
+
+    if hoy.weekday() >= 5:
+        dia = "sábado" if hoy.weekday() == 5 else "domingo"
+        print(f"⏭️  Hoy es {dia} {hoy.strftime('%Y-%m-%d')} — no se ejecuta análisis en fin de semana.")
+        print("   Script finalizado sin ejecutar análisis.")
+        exit(0)
+
+    if es_feriado:
+        print(f"⏭️  Hoy es feriado nacional: '{nombre_feriado}' ({hoy.strftime('%Y-%m-%d')}) — no se ejecuta análisis.")
+        print("   Script finalizado sin ejecutar análisis.")
+        exit(0)
+    # ──────────────────────────────────────────────────────────────────────────
+
     parser = argparse.ArgumentParser(
         description="Análisis de Concentración — Monitor de Fenómenos Corruptivos"
     )
