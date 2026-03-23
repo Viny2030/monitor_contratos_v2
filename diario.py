@@ -578,11 +578,26 @@ def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_
 # EJECUCIÓN PRINCIPAL
 # ─────────────────────────────────────────
 if __name__ == "__main__":
-    # ── Guardia fin de semana ──────────────────────────────────────────────────
+    # ── Guardia fin de semana y feriados argentinos ───────────────────────────
     hoy = datetime.now()
+
+    try:
+        import holidays
+        feriados_ar = holidays.Argentina(years=hoy.year)
+        es_feriado = hoy.date() in feriados_ar
+        nombre_feriado = feriados_ar.get(hoy.date(), "")
+    except ImportError:
+        es_feriado = False
+        nombre_feriado = ""
+
     if hoy.weekday() >= 5:
         dia = "sábado" if hoy.weekday() == 5 else "domingo"
         print(f"⏭️  Hoy es {dia} {hoy.strftime('%Y-%m-%d')} — los organismos no publican en fin de semana.")
+        print("   Script finalizado sin ejecutar scrapers.")
+        exit(0)
+
+    if es_feriado:
+        print(f"⏭️  Hoy es feriado nacional: '{nombre_feriado}' ({hoy.strftime('%Y-%m-%d')}) — los organismos no publican.")
         print("   Script finalizado sin ejecutar scrapers.")
         exit(0)
     # ──────────────────────────────────────────────────────────────────────────
