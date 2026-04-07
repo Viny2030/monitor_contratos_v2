@@ -418,7 +418,15 @@ def analisis_hhi(df, top_n=15, exportar_df=False):
         if total == 0:
             continue
 
-        por_cuit = grupo.groupby("_cuit")["_monto"].sum()
+        # Ignorar filas con CUIT vacío o nulo antes de agrupar
+        grupo_cuit = grupo[grupo["_cuit"].str.strip().ne("") & grupo["_cuit"].notna()]
+        if grupo_cuit.empty:
+            continue
+
+        por_cuit = grupo_cuit.groupby("_cuit")["_monto"].sum()
+        if por_cuit.empty:
+            continue
+
         participaciones = por_cuit / total
         hhi = round((participaciones ** 2).sum() * 10_000, 1)
 
