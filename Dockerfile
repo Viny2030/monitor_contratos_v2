@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 8501
+EXPOSE 8000
 
-CMD ["sh", "-c", "streamlit run dashboard_v2.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
 # rebuild v2
