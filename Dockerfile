@@ -11,6 +11,9 @@ COPY . .
 
 RUN mkdir -p /app/templates /app/static /app/data
 
+# cache-bust: 20260506-1
+RUN echo "build ok"
+
 EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
