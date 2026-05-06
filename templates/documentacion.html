@@ -1,103 +1,654 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentación - Monitor XAI</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Documentación — Monitor XAI</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* ── Variables ── */
+    :root {
+      --bg:        #0f1117;
+      --bg-card:   #1a1f2e;
+      --bg-card2:  #1e2535;
+      --border:    #2d3748;
+      --accent:    #7c3aed;
+      --accent2:   #a78bfa;
+      --accent3:   #c4b5fd;
+      --green:     #059669;
+      --amber:     #d97706;
+      --red:       #dc2626;
+      --text:      #e2e8f0;
+      --text-muted:#94a3b8;
+      --shadow:    0 4px 24px rgba(124,58,237,0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(124,58,237,0.3);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-brand .logo { font-size: 22px; }
+
+    .nav-brand .title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-brand .badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-brand .subtitle {
+      font-size: 11px;
+      color: var(--accent3);
+      margin-top: 1px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-links a {
+      color: var(--accent3);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-links a:hover { background: rgba(124,58,237,0.2); color: #fff; }
+    .nav-links a.active { background: var(--accent); color: #fff; font-weight: 700; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, #1a0533 0%, #0f1117 50%, #0d1a2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 60px 32px 48px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .hero h1 span { color: var(--accent2); }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 620px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+    }
+
+    .hero-links {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(124,58,237,0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(124,58,237,0.5);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--accent2);
+      border: 2px solid var(--accent);
+    }
+
+    .btn-outline:hover {
+      background: rgba(124,58,237,0.1);
+      transform: translateY(-2px);
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, var(--green), #047857);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(5,150,105,0.4);
+    }
+
+    .btn-green:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(5,150,105,0.5);
+    }
+
+    /* ── CONTENIDO ── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* ── CARD BIO ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── BIO SECTION ── */
+    .bio-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .bio-foto {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 0 4px rgba(124,58,237,0.2);
+      display: block;
+    }
+
+    .bio-foto-fallback {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4c1d95, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      border: 3px solid var(--accent);
+    }
+
+    .bio-info h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .bio-info p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.75;
+      margin-bottom: 10px;
+    }
+
+    .bio-info p em {
+      color: var(--accent3);
+      font-style: italic;
+    }
+
+    .bio-mails {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .mail-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 8px;
+      color: var(--accent2);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .mail-btn:hover {
+      background: rgba(124,58,237,0.3);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── MAPA TRANSPARENCIA ── */
+    .mapa-card {
+      background: linear-gradient(135deg, #0d2137, #0f1117);
+      border: 1px solid #1e4060;
+      border-radius: 16px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .mapa-info h3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .mapa-info p {
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 480px;
+    }
+
+    /* ── INSTRUCTIVO ── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 16px;
+      background: var(--bg-card2);
+      border-radius: 10px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .step-text strong {
+      display: block;
+      font-size: 14px;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+
+    .step-text span {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── REFERENCIA ── */
+    .ref-box {
+      background: rgba(124,58,237,0.08);
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 10px;
+      padding: 18px 22px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .ref-box a {
+      color: var(--accent2);
+      text-decoration: none;
+    }
+
+    .ref-box a:hover { text-decoration: underline; }
+
+    /* ── TABLA ESCENARIOS ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      background: rgba(124,58,237,0.15);
+      color: var(--accent3);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(45,55,72,0.5);
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+
+    td:first-child { color: var(--text); font-weight: 500; }
+
+    tr:last-child td { border-bottom: none; }
+
+    .peso-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .peso-10 { background: #fee2e2; color: #991b1b; }
+    .peso-9  { background: #fef3c7; color: #92400e; }
+    .peso-8  { background: #fef9c3; color: #713f12; }
+    .peso-7  { background: #e0f2fe; color: #075985; }
+    .peso-6  { background: #f0fdf4; color: #166534; }
+    .peso-5  { background: #f5f3ff; color: #4c1d95; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 32px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .bio-grid { grid-template-columns: 1fr; }
+      .bio-foto, .bio-foto-fallback { margin: 0 auto; }
+      .bio-info h2 { text-align: center; }
+      .bio-mails { justify-content: center; }
+      nav { padding: 0 16px; }
+      .nav-links { display: none; }
+      .mapa-card { flex-direction: column; }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="header-inner">
-            <div class="header-brand">
-                <h1>⚖️ Monitor XAI <span class="badge">v1.0</span></h1>
-                <p>Ph.D. Vicente Humberto Monteverde · Algoritmos contra la Corrupción</p>
-            </div>
-            <nav>
-                <a href="/">📊 Dashboard</a>
-                <a href="/analisis-vivo">🚀 Análisis en Vivo</a>
-                <a href="/documentacion" class="active">📖 Documentación</a>
-                <a href="/docs">🔧 API</a>
-            </nav>
+
+<!-- NAV -->
+<nav>
+  <div>
+    <div class="nav-brand">
+      <span class="logo">⚖️</span>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="title">Monitor XAI</span>
+          <span class="badge">V1.0</span>
         </div>
-    </header>
+        <div class="subtitle">Ph.D. Vicente Humberto Monteverde · Algoritmos contra la Corrupción</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="/mapa">🗺️ Mapa</a>
+    <a href="/dashboard">📊 Dashboard</a>
+    <a href="/monitor">🚀 Análisis en Vivo</a>
+    <a href="/documentacion" class="active">📋 Documentación</a>
+    <a href="/docs">🔌 API</a>
+  </div>
+</nav>
 
-    <main>
-        <section class="doc-section">
-            <h2>📖 Guía de Uso del Monitor XAI</h2>
-            <div class="doc-grid">
-                <div class="doc-card">
-                    <h3>🚀 Operación del Sistema</h3>
-                    <ol>
-                        <li>Vaya a <strong>Análisis en Vivo</strong> y pulse 🚀</li>
-                        <li>En <strong>Dashboard</strong> visualice los resultados</li>
-                        <li>Ordene por Índice para identificar casos críticos</li>
-                    </ol>
-                </div>
-                <div class="doc-card">
-                    <h3>🔍 Interpretación de Riesgo</h3>
-                    <ul>
-                        <li><strong>Índice (0-10):</strong> Nivel de discrecionalidad detectado</li>
-                        <li>🔴 <strong>Alto (8-10):</strong> Requiere auditoría inmediata</li>
-                        <li>🟡 <strong>Medio (5-7):</strong> Requiere revisión</li>
-                        <li>🔵 <strong>Bajo (0-4):</strong> Estándares normales</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+<!-- HERO -->
+<div class="hero">
+  <h1>📋 Documentación <span>Monitor XAI</span></h1>
+  <p>
+    Sistema de detección automática de fenómenos corruptivos legales basado en la 
+    <em>Teoría de Transferencia Regresiva de Ingresos</em> del Ph.D. Vicente Humberto Monteverde.
+  </p>
+  <div class="hero-links">
+    <a href="/monitor" class="btn btn-primary">🚀 Ir al Monitor</a>
+    <a href="https://mapatransparencia-production.up.railway.app/" target="_blank" class="btn btn-green">🗺️ Mapa de Transparencia</a>
+    <a href="/docs" class="btn btn-outline">🔌 Explorar API</a>
+  </div>
+</div>
 
-        <section class="doc-section">
-            <h2>🔬 Los 7 Escenarios de la Matriz XAI</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Escenario</th>
-                        <th>Mecanismo de Transferencia</th>
-                        <th>Peso</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for e in escenarios %}
-                    <tr>
-                        <td style="color:var(--text-primary);font-weight:500">{{ e.nombre }}</td>
-                        <td>{{ e.transferencia }}</td>
-                        <td><strong style="font-family:var(--mono);color:var(--accent-cyan)">{{ e.peso }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
+<div class="container">
 
-        <section class="doc-section referencia">
-            <h2>📄 Fundamentación Académica</h2>
-            <p>Esta herramienta implementa la investigación del <strong style="color:var(--text-primary)">Ph.D. Vicente Humberto Monteverde</strong> sobre la <strong style="color:var(--text-primary)">Transferencia Regresiva de Ingresos</strong>.</p>
-            <p><strong style="color:var(--text-secondary)">Referencia:</strong> Monteverde, V.H. (2021). "Great corruption - theory of corrupt phenomena", <em>Journal of Financial Crime</em>, Vol. 28 No. 2, pp. 580-592.</p>
-            <p><strong style="color:var(--text-secondary)">DOI:</strong> <a href="https://doi.org/10.1108/JFC-03-2020-0054" target="_blank">10.1108/JFC-03-2020-0054</a></p>
-            <br>
-            <a href="/api/descargar-articulo" class="btn-descarga">📥 Descargar Artículo Original (Ph.D. Monteverde)</a>
-        </section>
+  <!-- MAPA DE TRANSPARENCIA -->
+  <div class="mapa-card">
+    <div class="mapa-info">
+      <h3>🗺️ Mapa de Transparencia Argentina</h3>
+      <p>
+        Visualización georreferenciada de contratos públicos, adjudicaciones y flujos 
+        presupuestarios por organismo y provincia. Complemento visual del Monitor XAI.
+      </p>
+    </div>
+    <a href="https://mapatransparencia-production.up.railway.app/" target="_blank" class="btn btn-green">
+      Ver Mapa →
+    </a>
+  </div>
 
-        <section class="doc-section" id="contacto">
-            <h2>👤 Sobre el Autor</h2>
-            <div style="display:flex; gap:2rem; align-items:flex-start; flex-wrap:wrap;">
-                <img src="/static/foto_monteverde.jpg"
-                     alt="Ph.D. Vicente Humberto Monteverde"
-                     style="width:140px; height:140px; object-fit:cover; border-radius:50%;
-                            border:3px solid var(--accent-cyan); flex-shrink:0;">
-                <div>
-                    <h3 style="margin:0 0 0.5rem; color:var(--text-primary)">Ph.D. Vicente Humberto Monteverde</h3>
-                    <p style="margin:0 0 0.75rem; color:var(--text-secondary)">
-                        Investigador en economía política y fenómenos de corrupción. Doctor en Ciencias Económicas.
-                        Autor de la teoría de <em>Transferencia Regresiva de Ingresos</em> y desarrollador del
-                        algoritmo XAI aplicado al análisis de contrataciones públicas.
-                    </p>
-                    <p style="margin:0; color:var(--text-secondary)">
-                        Publicaciones en <em>Journal of Financial Crime</em> (Emerald Publishing).
-                        Asesor en transparencia y auditoría algorítmica del gasto público.
-                    </p>
-                    <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap;">
-                        <a href="/cdn-cgi/l/email-protection#02746a6f6d6c7667427067766b6c632c6370" class="btn-descarga" style="padding:0.5rem 1rem; font-size:0.85rem;">
-                            ✉️ <span class="__cf_email__" data-cfemail="9fe9f7f2f0f1ebfadfedfaebf6f1feb1feed">[email&#160;protected]</span>
-                        </a>
-                        <a href="/cdn-cgi/l/email-protection#92e4fbfceba2a3aba7aad2f5fff3fbfebcf1fdff" class="btn-descarga" style="padding:0.5rem 1rem; font-size:0.85rem;">
-                            ✉️ <span class="__cf_email__" data-cfemail="
+  <!-- BIO AUTOR -->
+  <div class="card">
+    <div class="card-title">👤 Sobre el Autor</div>
+    <div class="bio-grid">
+      <div>
+        <img
+          src="/static/foto_monteverde.jpg"
+          alt="Ph.D. Vicente Humberto Monteverde"
+          class="bio-foto"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        />
+        <div class="bio-foto-fallback" style="display:none;">👤</div>
+      </div>
+      <div class="bio-info">
+        <h2>Ph.D. Vicente Humberto Monteverde</h2>
+        <p>
+          Investigador en economía política y fenómenos de corrupción. Doctor en Ciencias Económicas. 
+          Autor de la teoría de <em>Transferencia Regresiva de Ingresos</em> y desarrollador del 
+          algoritmo XAI aplicado al análisis de contrataciones públicas.
+        </p>
+        <p>
+          Publicaciones en <em>Journal of Financial Crime</em> (Emerald Publishing). 
+          Asesor en transparencia y auditoría algorítmica del gasto público.
+        </p>
+        <div class="bio-mails">
+          <a href="mailto:vhmonte@retina.ar" class="mail-btn">
+            ✉️ vhmonte@retina.ar
+          </a>
+          <a href="mailto:viny01958@gmail.com" class="mail-btn">
+            ✉️ viny01958@gmail.com
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTRUCTIVO DE USO -->
+  <div class="card">
+    <div class="card-title">📖 Instructivo de Uso</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Acceder al Monitor</strong>
+          <span>Ir a la sección <strong>Análisis en Vivo</strong> e ingresar la clave de acceso. El sistema carga automáticamente el último reporte disponible.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>Explorar el Dashboard de Contratos</strong>
+          <span>Visualizá el flujo completo BORA → Comprar.gob.ar → TGN. Filtrá por organismo, nivel de riesgo o período temporal.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>Analizar Organismos y Proveedores</strong>
+          <span>Perfiles individuales con HHI de concentración, evolución mensual y red flags. Ver quién <strong>cobró</strong> (TGN), no solo quién ganó.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <strong>Revisar el Mapa de Transparencia</strong>
+          <span>Acceder al <a href="https://mapatransparencia-production.up.railway.app/" target="_blank" style="color:var(--accent2);">Mapa de Transparencia</a> para visualización georreferenciada de los contratos detectados.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-text">
+          <strong>Integrar vía API</strong>
+          <span>Usá el endpoint <code style="background:rgba(124,58,237,0.2);padding:1px 6px;border-radius:4px;font-size:12px;">/api/status</code> para consumir los datos en sistemas externos. Ver documentación completa en <a href="/docs" style="color:var(--accent2);">/docs</a>.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón descarga instructivo -->
+    <div style="margin-top:24px;">
+      <a href="/static/instructivo_monitor.docx" download class="btn btn-outline" style="font-size:13px;">
+        📥 Descargar instructivo completo (.docx)
+      </a>
+    </div>
+  </div>
+
+  <!-- ESCENARIOS XAI -->
+  <div class="card">
+    <div class="card-title">🔬 Los 7 Escenarios Teóricos (Matriz XAI)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Escenario</th>
+          <th>Dirección de Transferencia</th>
+          <th>Peso XAI</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Jubilaciones / Pensiones</td>
+          <td>Jubilados → Estado</td>
+          <td><span class="peso-badge peso-10">10.0</span></td>
+        </tr>
+        <tr>
+          <td>Privatización / Concesión</td>
+          <td>Estado → Privados</td>
+          <td><span class="peso-badge peso-9">9.0</span></td>
+        </tr>
+        <tr>
+          <td>Traslado de Impuestos</td>
+          <td>Contribuyentes → Estado</td>
+          <td><span class="peso-badge peso-9">9.0</span></td>
+        </tr>
+        <tr>
+          <td>Obra Pública / Contratos</td>
+          <td>Estado → Empresas Contratistas</td>
+          <td><span class="peso-badge peso-8">8.0</span></td>
+        </tr>
+        <tr>
+          <td>Tarifas Servicios Públicos</td>
+          <td>Usuarios → Concesionarias</td>
+          <td><span class="peso-badge peso-7">7.0</span></td>
+        </tr>
+        <tr>
+          <td>Precios Regulados</td>
+          <td>Consumidores → Productores</td>
+          <td><span class="peso-badge peso-6">6.0</span></td>
+        </tr>
+        <tr>
+          <td>Salarios y Paritarias</td>
+          <td>Asalariados → Empleadores/Estado</td>
+          <td><span class="peso-badge peso-5">5.0</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- REFERENCIA ACADÉMICA -->
+  <div class="ref-box">
+    <strong style="color:var(--accent3);">📚 Referencia académica</strong><br/>
+    Monteverde, V. H. (2021). <em>Great corruption – theory of corrupt phenomena</em>.
+    <em>Journal of Financial Crime</em>, Vol. 28 No. 2, pp. 580–595.
+    <a href="https://doi.org/10.1108/JFC-04-2020-0062" target="_blank">
+      https://doi.org/10.1108/JFC-04-2020-0062
+    </a>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  Monitor XAI v1.0 — Ph.D. Vicente Humberto Monteverde · 
+  <a href="https://mapatransparencia-production.up.railway.app/" target="_blank" style="color:var(--accent2);">Mapa de Transparencia</a> · 
+  <a href="/docs" style="color:var(--accent2);">API Docs</a>
+</footer>
+
+</body>
+</html>
