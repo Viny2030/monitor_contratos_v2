@@ -476,6 +476,10 @@ def cruzar_fuentes(df_adjudicaciones, df_comprar, df_tgn):
 # GUARDAR DOS EXCELS
 # ─────────────────────────────────────────
 def guardar_excels(df_cruce, df_adjudicaciones, df_licitaciones, df_comprar, df_tgn):
+    # ── Guardar en PostgreSQL ──────────────────────────────────────────────
+    from db import init_db, guardar_contratos
+    init_db()
+    guardar_contratos(df_cruce)
     carpeta = carpeta_mes()
     hoy     = datetime.now().strftime("%Y-%m-%d")
 
