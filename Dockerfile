@@ -11,6 +11,9 @@ COPY . .
 
 RUN mkdir -p /app/templates /app/static /app/data
 
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 EXPOSE 8000
 
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD ["/start.sh"]
