@@ -1,38 +1,37 @@
 # ─────────────────────────────────────────────────────────────
 # requirements.txt — Monitor de Fenómenos Corruptivos v2
 # Ph.D. Vicente Humberto Monteverde (2020)
-#
-# Instalación local (PyCharm):
-#   pip install -r requirements.txt
-#
-# Verificar instalación:
-#   python -c "import streamlit, pandas, plotly, bs4; print('OK')"
+# FastAPI edition — sin Streamlit
 # ─────────────────────────────────────────────────────────────
+
+# ── Web framework ─────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+jinja2>=3.1.0
+python-multipart>=0.0.9
+
 # ── Web scraping ──────────────────────────────────────────────
 requests>=2.31.0
 beautifulsoup4>=4.12.0
-lxml>=4.9.0                  # parser HTML alternativo para bs4
+lxml>=4.9.0
 urllib3>=2.0.0
+
 # ── PDF (extracción de texto de avisos BORA en PDF) ───────────
 pdfminer.six>=20221105
+
 # ── Datos y análisis ──────────────────────────────────────────
 pandas>=2.0.0
 numpy>=1.24.0
-openpyxl>=3.1.0              # lectura/escritura Excel (.xlsx)
-# ── Dashboard ─────────────────────────────────────────────────
-streamlit>=1.32.0
-plotly>=5.18.0
-# ── Scheduler (ejecución automática de diario.py) ─────────────
-# Descomentar cuando implementes el scheduler:
-# APScheduler>=3.10.0
+openpyxl>=3.1.0
+
 # ── Calendario y feriados ─────────────────────────────────────
-holidays>=0.46               # feriados nacionales Argentina (y otros países)
+holidays>=0.46
+
 # ── Utilidades ────────────────────────────────────────────────
-python-dateutil>=2.8.0       # parseo robusto de fechas
-certifi>=2024.0.0            # certificados SSL
+python-dateutil>=2.8.0
+certifi>=2024.0.0
 charset-normalizer>=3.0.0
+pydantic>=2.0.0
+
 # ── Base de datos ─────────────────────────────────────────────
-psycopg2-binary>=2.9.0       # conexión PostgreSQL (Railway)
-# ── Opcionales (para análisis avanzado futuro) ────────────────
-# scikit-learn>=1.3.0        # clustering de organismos/proveedores
-# networkx>=3.0              # grafos de relaciones CUIT-organismo
+psycopg2-binary>=2.9.0
