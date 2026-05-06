@@ -145,7 +145,43 @@ def etiqueta_archivo(ruta: str) -> str:
     partes = ruta.replace("\\", "/").split("/")
     return f"{partes[-2]} / {partes[-1]}" if len(partes) >= 3 else partes[-1]
 
+# ── AGREGAR ESTAS RUTAS AL main.py existente ────────────────────────────────
+# Pegar después de app.mount("/static", ...) y antes de los endpoints API
 
+
+@app.get("/documentacion", response_class=HTMLResponse)
+async def documentacion(request: Request):
+    """Página de documentación con bio del autor, instructivo y escenarios XAI."""
+    return templates.TemplateResponse("documentacion.html", {"request": request})
+
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    """Página principal — redirige al dashboard."""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    return templates.TemplateResponse("dashboard.html", {"request": request})
+
+
+@app.get("/monitor", response_class=HTMLResponse)
+async def monitor_page(request: Request, clave: str = ""):
+    """Monitor con estadísticas — requiere clave monitor_2026."""
+    MONITOR_KEY = os.getenv("MONITOR_KEY", "monitor_2026")
+    autenticado = (clave == MONITOR_KEY)
+    return templates.TemplateResponse("monitor.html", {
+        "request": request,
+        "autenticado": autenticado,
+    })
+
+
+@app.get("/mapa", response_class=HTMLResponse)
+async def mapa_redirect(request: Request):
+    """Redirige al Mapa de Transparencia externo."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="https://mapatransparencia-production.up.railway.app/")
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
 @app.get("/api/status")
