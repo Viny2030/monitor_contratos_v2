@@ -278,7 +278,7 @@ async def index():
     return _INDEX_HTML
 
 
-_HTML_CONTENT = """<!DOCTYPE html>
+_INDEX_HTML = """<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
