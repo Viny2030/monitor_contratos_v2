@@ -63,6 +63,26 @@ jobs:
           git commit -m "Monitor diario $(date +'%Y-%m-%d') — BORA+Comprar+TGN+Concentración"
           git push origin HEAD:feature/base-datos
 
+      # ── 7b. Invalidar caché en Railway ───────────────────────
+      # Railway no redeploya automáticamente cuando se pushean datos.
+      # Este paso le avisa al servidor que hay xlsx nuevos disponibles
+      # en el repo para que los descargue y recargue el caché interno.
+      - name: Notificar refresh a Railway
+        run: |
+          echo "Llamando a /api/reload en Railway..."
+          STATUS=$(curl -s -o /tmp/rail_resp.json -w "%{http_code}" \
+            -X POST \
+            -H "x-refresh-token: ${{ secrets.REFRESH_TOKEN }}" \
+            https://monitorcontratosv2-production-65d2.up.railway.app/api/reload)
+          cat /tmp/rail_resp.json
+          echo ""
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Railway recargó los datos correctamente"
+          else
+            echo "⚠️ Railway respondió HTTP $STATUS — los datos se cargarán en el próximo request"
+          fi
+        continue-on-error: true
+
       # ── 8. Notificación de éxito ─────────────────────────────
       - name: Notificar éxito
         if: success()
