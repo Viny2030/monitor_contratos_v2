@@ -1,4 +1,4 @@
-"""
+﻿"""
 main.py — Monitor de Fenómenos Corruptivos v2
 FastAPI + Jinja2 + Plotly.js (sin Streamlit)
 
