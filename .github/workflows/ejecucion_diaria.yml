@@ -54,21 +54,23 @@ jobs:
         run: |
           git config --global user.name  'Robot Monitor'
           git config --global user.email 'robot@noreply.github.com'
-          git fetch origin feature/base-datos
-          git rebase origin/feature/base-datos
           git add data/
           git add data/perfiles/ 2>/dev/null || true
           git add data/analisis/ 2>/dev/null || true
           git diff --staged --quiet \
             && echo "Sin cambios nuevos — nada que commitear" \
             && exit 0
+          git stash
+          git fetch origin feature/base-datos
+          git rebase origin/feature/base-datos
+          git stash pop
+          git add data/
+          git add data/perfiles/ 2>/dev/null || true
+          git add data/analisis/ 2>/dev/null || true
           git commit -m "Monitor diario $(date +'%Y-%m-%d') — BORA+Comprar+TGN+Concentración"
           git push origin HEAD:feature/base-datos
 
       # ── 7b. Invalidar caché en Railway ───────────────────────
-      # Railway no redeploya automáticamente cuando se pushean datos.
-      # Este paso le avisa al servidor que hay xlsx nuevos disponibles
-      # en el repo para que los descargue y recargue el caché interno.
       - name: Notificar refresh a Railway
         run: |
           echo "Llamando a /api/reload en Railway..."
