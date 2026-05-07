@@ -345,8 +345,8 @@ def sidebar():
 
     st.sidebar.divider()
     if st.sidebar.button("🔄 Actualizar datos", use_container_width=True):
-    st.cache_data.clear()
-    st.rerun()
+        st.cache_data.clear()
+        st.rerun()
     instructivo_path = os.path.join(os.getcwd(), "instructivo_monitor.docx")
     if os.path.exists(instructivo_path):
         with open(instructivo_path, "rb") as f:
