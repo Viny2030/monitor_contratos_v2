@@ -230,6 +230,7 @@ def _leer_xlsx_github(path):
 @st.cache_data(ttl=3600, show_spinner="Cargando datos históricos...")
 def cargar_datos():
     archivos = _listar_reportes_github()
+    st.write(f"DEBUG archivos GitHub: {archivos[:5]}")
     # Fallback a disco local si GitHub no responde (desarrollo local)
     if not archivos:
         patron   = os.path.join(DATA_DIR, "**", "reporte_*.xlsx")
