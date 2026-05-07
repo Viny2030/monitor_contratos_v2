@@ -50,10 +50,12 @@ jobs:
         continue-on-error: true
 
       # ── 7. Guardar y sincronizar ─────────────────────────────
-      - name: Commit y push de reportes generados
+ - name: Commit y push de reportes generados
         run: |
           git config --global user.name  'Robot Monitor'
           git config --global user.email 'robot@noreply.github.com'
+          git fetch origin feature/base-datos
+          git reset --soft origin/feature/base-datos
           git add data/
           git add data/perfiles/ 2>/dev/null || true
           git add data/analisis/ 2>/dev/null || true
