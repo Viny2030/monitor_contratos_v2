@@ -8,7 +8,10 @@ import re
 import glob
 import logging
 import unicodedata
+import io
 from datetime import datetime
+
+import requests
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -198,26 +201,80 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+_GITHUB_API = "https://api.github.com/repos/Viny2030/monitor_contratos_v2/git/trees/feature/base-datos?recursive=1"
+_GITHUB_RAW = "https://raw.githubusercontent.com/Viny2030/monitor_contratos_v2/feature/base-datos/"
+
+def _listar_reportes_github():
+    """Devuelve lista de paths de reporte_*.xlsx en el repo vía API de GitHub."""
+    try:
+        r = requests.get(_GITHUB_API, timeout=15)
+        r.raise_for_status()
+        tree = r.json().get("tree", [])
+        return sorted([
+            item["path"] for item in tree
+            if item["type"] == "blob"
+            and "/reporte_" in item["path"]
+            and item["path"].endswith(".xlsx")
+        ])
+    except Exception as e:
+        logger.warning(f"Error listando repo GitHub: {e}")
+        return []
+
+def _leer_xlsx_github(path):
+    """Descarga un xlsx desde GitHub raw y lo devuelve como ExcelFile."""
+    url = _GITHUB_RAW + path
+    r = requests.get(url, timeout=30)
+    r.raise_for_status()
+    return pd.ExcelFile(io.BytesIO(r.content), engine="openpyxl")
+
 @st.cache_data(ttl=3600, show_spinner="Cargando datos históricos...")
 def cargar_datos():
-    patron   = os.path.join(DATA_DIR, "**", "reporte_*.xlsx")
-    archivos = sorted(glob.glob(patron, recursive=True))
+    archivos = _listar_reportes_github()
+    # Fallback a disco local si GitHub no responde (desarrollo local)
+    if not archivos:
+        patron   = os.path.join(DATA_DIR, "**", "reporte_*.xlsx")
+        archivos_local = sorted(glob.glob(patron, recursive=True))
+        dfs_flujo, dfs_adj, dfs_tgn = [], [], []
+        for archivo in archivos_local:
+            try:
+                xl = pd.ExcelFile(archivo, engine="openpyxl")
+                for sheet in ["🚨 Flujo Completo", "🔗 Flujo Cruzado"]:
+                    if sheet in xl.sheet_names:
+                        df = pd.read_excel(xl, sheet_name=sheet, engine="openpyxl")
+                        df["_archivo"] = os.path.basename(archivo)
+                        dfs_flujo.append(df)
+                        break
+                if "🏆 Adjudicaciones" in xl.sheet_names:
+                    dfs_adj.append(pd.read_excel(xl, sheet_name="🏆 Adjudicaciones", engine="openpyxl"))
+                if "💰 TGN" in xl.sheet_names:
+                    dfs_tgn.append(pd.read_excel(xl, sheet_name="💰 TGN", engine="openpyxl"))
+            except Exception:
+                pass
+        df_flujo = pd.concat(dfs_flujo, ignore_index=True) if dfs_flujo else pd.DataFrame()
+        df_adj   = pd.concat(dfs_adj,   ignore_index=True) if dfs_adj   else pd.DataFrame()
+        df_tgn   = pd.concat(dfs_tgn,   ignore_index=True) if dfs_tgn   else pd.DataFrame()
+        for df in [df_flujo, df_adj]:
+            for col in ["fecha", "fecha_extraccion", "fecha_publicacion"]:
+                if col in df.columns:
+                    df[col] = pd.to_datetime(df[col], errors="coerce")
+        return df_flujo, df_adj, df_tgn, len(archivos_local)
+
     dfs_flujo, dfs_adj, dfs_tgn = [], [], []
-    for archivo in archivos:
+    for path in archivos:
         try:
-            xl = pd.ExcelFile(archivo, engine="openpyxl")
+            xl = _leer_xlsx_github(path)
             for sheet in ["🚨 Flujo Completo", "🔗 Flujo Cruzado"]:
                 if sheet in xl.sheet_names:
                     df = pd.read_excel(xl, sheet_name=sheet, engine="openpyxl")
-                    df["_archivo"] = os.path.basename(archivo)
+                    df["_archivo"] = os.path.basename(path)
                     dfs_flujo.append(df)
                     break
             if "🏆 Adjudicaciones" in xl.sheet_names:
                 dfs_adj.append(pd.read_excel(xl, sheet_name="🏆 Adjudicaciones", engine="openpyxl"))
             if "💰 TGN" in xl.sheet_names:
                 dfs_tgn.append(pd.read_excel(xl, sheet_name="💰 TGN", engine="openpyxl"))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error leyendo {path}: {e}")
     df_flujo = pd.concat(dfs_flujo, ignore_index=True) if dfs_flujo else pd.DataFrame()
     df_adj   = pd.concat(dfs_adj,   ignore_index=True) if dfs_adj   else pd.DataFrame()
     df_tgn   = pd.concat(dfs_tgn,   ignore_index=True) if dfs_tgn   else pd.DataFrame()
